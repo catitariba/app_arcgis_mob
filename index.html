@@ -1,0 +1,822 @@
+<!--
+  PMCT Euskotren Atxuri — Aplicación de Movilidad Sostenible
+  ArcGIS Maps SDK for JavaScript 4.31 + Chart.js
+  Datos: Feature Services en vivo (Survey123 + Lineas OD)
+  Idiomas: Español / Euskara
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PMCT Euskotren Atxuri</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.31/"></script>
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif;overflow:hidden}
+  calcite-shell{--calcite-shell-header-height:56px}
+
+  /* LOGIN SCREEN */
+  .login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#e8f0fe 0%,#f0f2f5 50%,#e0f2f1 100%);z-index:9999;display:flex;align-items:center;justify-content:center}
+  .login-box{background:#fff;border-radius:20px;padding:40px 36px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.12);text-align:center}
+  .login-box .logo-icon{width:64px;height:64px;background:linear-gradient(135deg,#1a73e8,#0d47a1);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+  .login-box .logo-icon svg{width:36px;height:36px;fill:#fff}
+  .login-box h2{margin:0 0 6px;color:#1f2937;font-size:22px;font-weight:700}
+  .login-box .sub{color:#6b7280;font-size:13px;margin:0 0 28px;line-height:1.5}
+  .login-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s}
+  .login-btn:hover{background:#1557b0}
+  .login-btn svg{width:20px;height:20px;fill:#fff}
+  .login-box .hint{font-size:11px;color:#999;margin-top:16px;line-height:1.4}
+  .login-loading{display:none;flex-direction:column;align-items:center;gap:12px}
+  .login-loading .spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#1a73e8;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* HEADER */
+  .app-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:56px;background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff}
+  .app-header h1{font-size:18px;font-weight:600;margin:0}
+  .app-header .subtitle{font-size:12px;opacity:.8}
+  .header-right{display:flex;align-items:center;gap:12px}
+  .lang-toggle{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;font-weight:500}
+  .lang-toggle:hover{background:rgba(255,255,255,.35)}
+
+  /* SIDEBAR NAV */
+  .nav-panel{width:56px;background:#f8fafc;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;align-items:center;padding-top:8px;gap:4px}
+  .nav-btn{width:44px;height:44px;border:none;background:transparent;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;transition:all .15s}
+  .nav-btn:hover{background:#e5e7eb;color:#1a73e8}
+  .nav-btn.active{background:#1a73e8;color:#fff}
+  .nav-btn svg{width:20px;height:20px}
+
+  /* MAIN CONTENT */
+  .main-area{display:flex;flex:1;overflow:hidden}
+  .content-panel{flex:1;overflow-y:auto;background:#f0f2f5}
+  .section{display:none;padding:20px;min-height:100%}
+  .section.active{display:block}
+
+  /* KPI ROW */
+  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+  .kpi{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:4px solid #1a73e8}
+  .kpi .val{font-size:26px;font-weight:700;color:#1f2937}.kpi .lbl{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+  .kpi.green{border-color:#10b981}.kpi.yellow{border-color:#f59e0b}.kpi.orange{border-color:#f97316}.kpi.red{border-color:#ef4444}
+
+  /* CARDS */
+  .card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:18px}
+  .card-h{padding:12px 18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}
+  .card-h h3{font-size:13px;font-weight:600;margin:0}.card-h .tag{font-size:10px;background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:10px;font-weight:500}
+  .card-b{padding:16px 18px}
+  .card-b.map-b{padding:0;height:440px;position:relative}
+
+  /* GRID LAYOUTS */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+  .chart-wrap{position:relative;height:260px}
+  .chart-wrap.tall{height:300px}
+
+  /* GAP ANALYSIS */
+  .gap-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .gap-label{width:140px;font-size:12px;text-align:right;color:#374151;font-weight:500}
+  .gap-bars{flex:1;display:flex;height:22px;border-radius:4px;overflow:hidden;position:relative}
+  .gap-actual{background:#1a73e8;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600}
+  .gap-pref{background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600}
+  .gap-legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:#6b7280}
+  .gap-legend span{display:flex;align-items:center;gap:4px}
+  .gap-legend .dot{width:10px;height:10px;border-radius:50%}
+
+  /* SIMULATOR */
+  .sim-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 14px;background:#f8fafc;border-radius:8px}
+  .sim-row label{width:180px;font-size:13px;font-weight:500;color:#374151}
+  .sim-row input[type=range]{flex:1}
+  .sim-row .sim-val{width:50px;text-align:right;font-weight:700;color:#1a73e8;font-size:14px}
+  .sim-result{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .sim-card{background:#fff;border-radius:12px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .sim-card .sim-big{font-size:32px;font-weight:700}.sim-card .sim-lbl{font-size:11px;color:#6b7280;margin-top:4px}
+  .sim-card.pos .sim-big{color:#10b981}.sim-card.neg .sim-big{color:#ef4444}
+
+  /* SUSTAINABILITY GAUGE */
+  .gauge-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+  .gauge-card{background:#fff;border-radius:12px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .gauge-card .gauge-val{font-size:36px;font-weight:800}.gauge-card .gauge-lbl{font-size:12px;color:#6b7280;margin-top:4px}
+  .gauge-card .gauge-bar{height:8px;background:#e5e7eb;border-radius:4px;margin-top:12px;overflow:hidden}
+  .gauge-card .gauge-fill{height:100%;border-radius:4px;transition:width .5s}
+
+  /* OD TABLE */
+  .od-tbl{width:100%;border-collapse:collapse;font-size:12px}
+  .od-tbl thead{background:#f8fafc}.od-tbl th{padding:8px 10px;text-align:left;font-weight:600;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #e5e7eb}
+  .od-tbl td{padding:7px 10px;border-bottom:1px solid #e5e7eb}.od-tbl tr:hover{background:#f8fafc}
+  .badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600}
+  .bg-green{background:#d1fae5;color:#065f46}.bg-yellow{background:#fef3c7;color:#92400e}.bg-orange{background:#fed7aa;color:#9a3412}.bg-red{background:#fecaca;color:#991b1b}
+  .bar-cell{display:flex;align-items:center;gap:6px}.bar-fill{height:5px;border-radius:3px;min-width:2px}
+
+  /* LEGEND MAP */
+  .map-legend{position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,.92);border-radius:8px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:2;font-size:11px}
+  .map-legend .ml-item{display:flex;align-items:center;gap:6px;margin-bottom:4px}.map-legend .ml-item:last-child{margin:0}
+  .ml-line{width:20px;height:3px;border-radius:2px}.ml-dot{width:8px;height:8px;border-radius:50%}
+
+  @media(max-width:900px){
+    .kpi-row{grid-template-columns:repeat(3,1fr)}.grid-2,.grid-3{grid-template-columns:1fr}
+    .sim-result,.gauge-row{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-overlay" id="loginScreen">
+  <div class="login-box">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
+    <h2>PMCT Euskotren Atxuri</h2>
+    <p class="sub">Plan de Movilidad al Centro de Trabajo<br>Inicia sesión con tu cuenta de ArcGIS Online</p>
+    <div id="loginActions">
+      <button class="login-btn" onclick="doLogin()">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Iniciar sesión
+      </button>
+    </div>
+    <div class="login-loading" id="loginLoading">
+      <div class="spinner"></div>
+      <span style="color:#6b7280;font-size:13px">Autenticando...</span>
+    </div>
+    <div class="hint">Acceso restringido a usuarios de la organización Euskotren / traninfralog</div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" style="display:none;height:100vh;flex-direction:column">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div>
+      <h1 id="appTitle">Plan de Movilidad al Centro de Trabajo</h1>
+      <div class="subtitle" id="appSubtitle">Euskotren — Sede Atxuri, Bilbao</div>
+    </div>
+    <div class="header-right">
+      <span id="userName" style="font-size:12px;opacity:.8"></span>
+      <button class="lang-toggle" id="langBtn" onclick="toggleLang()">🌐 Euskara</button>
+      <button class="lang-toggle" onclick="doLogout()" title="Cerrar sesión">⏻</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-area">
+
+    <!-- NAV SIDEBAR -->
+    <div class="nav-panel">
+      <button class="nav-btn active" data-sec="sec1" title="Visión General" onclick="showSection('sec1',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <button class="nav-btn" data-sec="sec2" title="Análisis" onclick="showSection('sec2',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      </button>
+      <button class="nav-btn" data-sec="sec3" title="Gap Analysis" onclick="showSection('sec3',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M14 14l7 7M3 8V3h5M10 10L3 3"/></svg>
+      </button>
+      <button class="nav-btn" data-sec="sec4" title="Simulador" onclick="showSection('sec4',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+      <button class="nav-btn" data-sec="sec5" title="Sostenibilidad" onclick="showSection('sec5',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.5-3 9-8 9-13a9 9 0 00-18 0c0 5 3.5 10 9 13z"/><path d="M12 8v4M12 16h.01"/></svg>
+      </button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content-panel">
+
+      <!-- SEC 1: VISIÓN GENERAL -->
+      <div class="section active" id="sec1">
+        <div class="kpi-row" id="kpiRow"></div>
+        <div class="card">
+          <div class="card-h"><h3 data-i18n="mapTitle">Mapa de Origen-Destino</h3><span class="tag" data-i18n="mapTag">Líneas OD + Residencias</span></div>
+          <div class="card-b map-b">
+            <div id="mapViewDiv" style="width:100%;height:100%"></div>
+            <div class="map-legend" id="mapLegend"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3 data-i18n="odTableTitle">Matriz Origen-Destino → Estación Atxuri</h3><span class="tag">28 municipios · Automóvil</span></div>
+          <div class="card-b" style="padding:0;max-height:380px;overflow-y:auto"><table class="od-tbl"><thead><tr><th data-i18n="thMuni">Municipio</th><th data-i18n="thTime">Tiempo</th><th data-i18n="thDist">Distancia</th><th data-i18n="thWorkers">Trabajadores</th><th data-i18n="thBand">Franja</th><th data-i18n="thProp" style="width:20%">Proporción</th></tr></thead><tbody id="odTbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- SEC 2: ANÁLISIS -->
+      <div class="section" id="sec2">
+        <div class="grid-2">
+          <div class="card"><div class="card-h"><h3 data-i18n="modeTitle">Modo de Transporte</h3></div><div class="card-b"><div class="chart-wrap tall"><canvas id="chMode"></canvas></div></div></div>
+          <div class="card"><div class="card-h"><h3 data-i18n="schedTitle">Hora de Llegada</h3></div><div class="card-b"><div class="chart-wrap tall"><canvas id="chHour"></canvas></div></div></div>
+        </div>
+        <div class="grid-3">
+          <div class="card"><div class="card-h"><h3 data-i18n="ageTitle">Edad</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chAge"></canvas></div></div></div>
+          <div class="card"><div class="card-h"><h3 data-i18n="genderTitle">Género</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chGender"></canvas></div></div></div>
+          <div class="card"><div class="card-h"><h3 data-i18n="bandTitle">Franjas de Tiempo OD</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chBand"></canvas></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3 data-i18n="motorTitle">Tipo de Motor (conductores de coche)</h3></div>
+          <div class="card-b"><div class="chart-wrap" style="height:200px"><canvas id="chMotor"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- SEC 3: GAP ANALYSIS -->
+      <div class="section" id="sec3">
+        <div class="card">
+          <div class="card-h"><h3 data-i18n="gapTitle">Modo Actual vs. Preferencia</h3><span class="tag" data-i18n="gapTag">Oportunidades de intervención</span></div>
+          <div class="card-b">
+            <div class="gap-legend">
+              <span><div class="dot" style="background:#1a73e8"></div> <span data-i18n="gapActual">Modo actual</span></span>
+              <span><div class="dot" style="background:#10b981"></div> <span data-i18n="gapPref">Preferencia</span></span>
+            </div>
+            <div id="gapBars"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><h3 data-i18n="insightTitle">Insights Clave</h3></div>
+            <div class="card-b" id="insightsBox" style="font-size:13px;line-height:1.7;color:#374151"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3 data-i18n="opportunityTitle">Oportunidades de Cambio Modal</h3></div>
+            <div class="card-b"><div class="chart-wrap"><canvas id="chOpportunity"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEC 4: SIMULADOR -->
+      <div class="section" id="sec4">
+        <div class="card">
+          <div class="card-h"><h3 data-i18n="simTitle">Simulador What-If de Cambio Modal</h3><span class="tag" data-i18n="simTag">Ajusta los escenarios</span></div>
+          <div class="card-b">
+            <div id="simSliders"></div>
+            <div class="sim-result" id="simResults"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEC 5: SOSTENIBILIDAD -->
+      <div class="section" id="sec5">
+        <div class="card">
+          <div class="card-h"><h3 data-i18n="susTitle">Indicadores de Sostenibilidad</h3><span class="tag" data-i18n="susTag">Huella de CO₂</span></div>
+          <div class="card-b">
+            <div class="gauge-row" id="gaugeRow"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card"><div class="card-h"><h3 data-i18n="co2ModeTitle">Emisiones CO₂ por Modo</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chCO2"></canvas></div></div></div>
+          <div class="card"><div class="card-h"><h3 data-i18n="co2SaveTitle">Ahorro Potencial de CO₂</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chCO2Save"></canvas></div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================
+// CONFIG
+// ============================
+var SURVEY_URL = 'https://services5.arcgis.com/CQghJ1IcnV6WlQrf/arcgis/rest/services/survey123_6d1f21f795284289a610d349e105a076/FeatureServer/0';
+var OD_URL = 'https://services5.arcgis.com/CQghJ1IcnV6WlQrf/arcgis/rest/services/Lineas_OD_Atxuri_PMCT/FeatureServer/0';
+var DEST = { x: -2.9197, y: 43.2589 };
+
+// CO2 emission factors (g CO2/km)
+var CO2_FACTORS = { 'Coche (yo solo)': 170, 'Coche (Compartido)': 85, 'Moto': 90, 'Autobús': 68, 'Tren o Metro o Tranvía': 30, 'Bicicleta': 0, 'Andando': 0 };
+
+// ============================
+// i18n
+// ============================
+var lang = 'es';
+var I18N = {
+  es: {
+    appTitle: 'Plan de Movilidad al Centro de Trabajo',
+    appSubtitle: 'Euskotren — Sede Atxuri, Bilbao',
+    langBtn: '🌐 Euskara',
+    mapTitle: 'Mapa de Origen-Destino', mapTag: 'Líneas OD + Residencias',
+    odTableTitle: 'Matriz Origen-Destino → Estación Atxuri',
+    thMuni:'Municipio',thTime:'Tiempo',thDist:'Distancia',thWorkers:'Trabajadores',thBand:'Franja',thProp:'Proporción',
+    modeTitle:'Modo de Transporte', schedTitle:'Hora de Llegada', ageTitle:'Edad', genderTitle:'Género',
+    bandTitle:'Franjas de Tiempo OD', motorTitle:'Tipo de Motor (conductores de coche)',
+    gapTitle:'Modo Actual vs. Preferencia', gapTag:'Oportunidades de intervención',
+    gapActual:'Modo actual', gapPref:'Preferencia',
+    insightTitle:'Insights Clave', opportunityTitle:'Oportunidades de Cambio Modal',
+    simTitle:'Simulador What-If de Cambio Modal', simTag:'Ajusta los escenarios',
+    susTitle:'Indicadores de Sostenibilidad', susTag:'Huella de CO₂',
+    co2ModeTitle:'Emisiones CO₂ por Modo', co2SaveTitle:'Ahorro Potencial de CO₂',
+    kpi1:'Encuestas', kpi2:'Viven a < 15 min', kpi3:'Coche solo', kpi4:'Tiempo medio OD', kpi5:'Transporte público',
+    leg15:'< 15 min', leg30:'15-30 min', leg45:'30-45 min', leg60:'> 45 min', legRes:'Residencias', legDest:'Destino Atxuri',
+    simCoche:'% conductores solos → TP', simMoto:'% motos → bicicleta', simCompartir:'% solos → compartido',
+    simCO2:'Reducción CO₂', simCoches:'Menos coches/día', simTP:'Más usuarios TP',
+    susActual:'CO₂ Actual (kg/día)', susPref:'CO₂ si preferencia', susAhorro:'Ahorro potencial',
+    insText:'<b>48%</b> de los trabajadores prefieren transporte público, pero solo el <b>33%</b> lo usa. Existe una demanda insatisfecha de <b>12 personas</b> que podrían cambiar al tren/metro con mejoras en frecuencia y cobertura.<br><br><b>18%</b> prefieren ir andando, pero solo el <b>11%</b> lo hace. La mayoría vive en Bilbao (< 15 min), lo que sugiere que mejoras en la seguridad peatonal o incentivos podrían facilitar el cambio.<br><br>El <b>35%</b> conduce solo, pero solo el <b>18%</b> lo prefiere. Es el mayor potencial de cambio modal del PMCT.'
+  },
+  eu: {
+    appTitle: 'Lan-Zentrorako Mugikortasun Plana',
+    appSubtitle: 'Euskotren — Atxuri Egoitza, Bilbo',
+    langBtn: '🌐 Español',
+    mapTitle: 'Jatorri-Helmuga Mapa', mapTag: 'OD Lerroak + Bizilekuak',
+    odTableTitle: 'Jatorri-Helmuga Matrizea → Atxuri Geltokia',
+    thMuni:'Udalerria',thTime:'Denbora',thDist:'Distantzia',thWorkers:'Langileak',thBand:'Tartea',thProp:'Proportzioa',
+    modeTitle:'Garraio Modua', schedTitle:'Iritsi Ordua', ageTitle:'Adina', genderTitle:'Generoa',
+    bandTitle:'OD Denbora Tarteak', motorTitle:'Motor Mota (autoz doazenak)',
+    gapTitle:'Egungo Modua vs. Lehentasuna', gapTag:'Esku-hartze aukerak',
+    gapActual:'Egungo modua', gapPref:'Lehentasuna',
+    insightTitle:'Funtsezko Ikuspegiak', opportunityTitle:'Aldaketa Modal Aukerak',
+    simTitle:'What-If Simuladorea', simTag:'Egokitu eszenatokiak',
+    susTitle:'Jasangarritasun Adierazleak', susTag:'CO₂ Aztarna',
+    co2ModeTitle:'CO₂ Isurketak Moduaren Arabera', co2SaveTitle:'CO₂ Aurrezpen Potentziala',
+    kpi1:'Inkestak', kpi2:'< 15 min-ra bizi', kpi3:'Auto bakarrik', kpi4:'Batez besteko OD', kpi5:'Garraio publikoa',
+    leg15:'< 15 min', leg30:'15-30 min', leg45:'30-45 min', leg60:'> 45 min', legRes:'Bizilekuak', legDest:'Atxuri Helmuga',
+    simCoche:'% bakarrik → GP', simMoto:'% moto → bizikleta', simCompartir:'% bakarrik → partekatua',
+    simCO2:'CO₂ Murrizketa', simCoches:'Auto gutxiago/egun', simTP:'GP erabiltzaile gehiago',
+    susActual:'Egungo CO₂ (kg/egun)', susPref:'CO₂ lehentasunarekin', susAhorro:'Aurrezpen potentziala',
+    insText:'Langileen <b>%48</b>k garraio publikoa nahiago du, baina <b>%33</b>k bakarrik erabiltzen du. <b>12 pertsonako</b> eskari asegabea dago, maiztasuna eta estaldura hobetuz trena/metrora alda litezkeenak.<br><br><b>%18</b>k oinez joan nahi du, baina <b>%11</b>k bakarrik egiten du. Gehienak Bilbon bizi dira (< 15 min), eta oinezko segurtasun hobekuntzek edo pizgarriek aldaketa erraztu dezaketela iradokitzen du.<br><br><b>%35</b>ek bakarrik gidatzen du, baina <b>%18</b>k bakarrik nahiago du. Hau da PMCTaren aldaketa modal potentzialik handiena.'
+  }
+};
+
+function toggleLang() {
+  lang = lang === 'es' ? 'eu' : 'es';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[lang][key]) el.innerHTML = I18N[lang][key];
+  });
+  document.getElementById('appTitle').textContent = I18N[lang].appTitle;
+  document.getElementById('appSubtitle').textContent = I18N[lang].appSubtitle;
+  document.getElementById('langBtn').textContent = I18N[lang].langBtn;
+  // Update KPIs
+  document.querySelectorAll('.kpi .lbl[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[lang][key]) el.textContent = I18N[lang][key];
+  });
+  document.getElementById('insightsBox').innerHTML = I18N[lang].insText;
+};
+
+// ============================
+// NAV
+// ============================
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+};
+
+// ============================
+// OAUTH CONFIG
+// ============================
+// ⚠️  CONFIGURA AQUÍ tu Client ID de ArcGIS Online
+//     (Registra una app en: tu-org.maps.arcgis.com → Content → My Content → New Item → Application)
+//     El Redirect URI debe ser la URL donde se hospeda esta página (ej: https://tu-user.github.io/pmct-atxuri/)
+var APP_ID = 'eN2ikRbdHVixfIsn';
+var PORTAL_URL = 'https://traninfralog.maps.arcgis.com';
+
+// ============================
+// AUTH STATE
+// ============================
+var TOKEN = '';
+var surveyData = [], odData = [];
+var _esriId = null;
+
+// ============================
+// OAUTH INIT (runs on page load)
+// ============================
+require([
+  "esri/identity/OAuthInfo",
+  "esri/identity/IdentityManager",
+  "esri/portal/Portal"
+], function(OAuthInfo, esriId, Portal) {
+  _esriId = esriId;
+  console.log('[PMCT] OAuth modules loaded');
+
+  var oAuthInfo = new OAuthInfo({
+    appId: APP_ID,
+    portalUrl: PORTAL_URL,
+    popup: false  // redirect-based login (best for GitHub Pages)
+  });
+  esriId.registerOAuthInfos([oAuthInfo]);
+
+  // Check if user is already signed in (e.g. returning from OAuth redirect)
+  esriId.checkSignInStatus(PORTAL_URL + '/sharing')
+    .then(function(credential) {
+      console.log('[PMCT] Already signed in, token length:', credential.token.length);
+      onSignedIn(credential);
+    })
+    .catch(function() {
+      console.log('[PMCT] Not signed in — showing login screen');
+      // Login screen is already visible by default
+    });
+
+  // After sign in, get user info and load data
+  function onSignedIn(credential) {
+    TOKEN = credential.token;
+
+    // Show user name in header
+    var portal = new Portal({ url: PORTAL_URL });
+    portal.authMode = 'immediate';
+    portal.load().then(function() {
+      var name = portal.user ? portal.user.fullName : credential.userId;
+      document.getElementById('userName').textContent = name;
+      console.log('[PMCT] Signed in as:', name);
+    }).catch(function() {
+      document.getElementById('userName').textContent = credential.userId;
+    });
+
+    // Hide login, show app
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appShell').style.display = 'flex';
+
+    // Load data
+    loadAppData();
+  }
+
+  // Expose onSignedIn for doLogin
+  window._onSignedIn = onSignedIn;
+
+}, function(err) {
+  console.error('[PMCT] Failed to load OAuth modules:', err);
+});
+
+// ============================
+// LOGIN / LOGOUT
+// ============================
+function doLogin() {
+  document.getElementById('loginActions').style.display = 'none';
+  document.getElementById('loginLoading').style.display = 'flex';
+  // Trigger OAuth redirect
+  require(["esri/identity/IdentityManager"], function(esriId) {
+    esriId.getCredential(PORTAL_URL + '/sharing')
+      .then(function(credential) {
+        window._onSignedIn(credential);
+      })
+      .catch(function(err) {
+        console.error('[PMCT] Login failed:', err);
+        document.getElementById('loginActions').style.display = 'block';
+        document.getElementById('loginLoading').style.display = 'none';
+      });
+  });
+}
+
+function doLogout() {
+  require(["esri/identity/IdentityManager"], function(esriId) {
+    esriId.destroyCredentials();
+    // Clear session and reload
+    window.location.reload();
+  });
+}
+
+// ============================
+// LOAD DATA (after auth)
+// ============================
+function loadAppData() {
+  console.log('[PMCT] Loading data with token...');
+  Promise.all([fetchSurvey(), fetchOD()]).then(function() {
+    console.log('[PMCT] Survey records:', surveyData.length, '| OD records:', odData.length);
+    renderKPIs();
+    renderMap();
+    renderODTable();
+    renderCharts();
+    renderGapAnalysis();
+    renderSimulator();
+    renderSustainability();
+    document.getElementById('insightsBox').innerHTML = I18N[lang].insText;
+    console.log('[PMCT] App loaded successfully');
+  }).catch(function(err) {
+    console.error('[PMCT] Error loading data:', err);
+    alert('Error cargando datos: ' + err.message);
+  });
+}
+
+function fetchSurvey() {
+  var params = new URLSearchParams({ where:'1=1', outFields:'*', outSR:'4326', f:'json', token: TOKEN, resultRecordCount: '200' });
+  return fetch(SURVEY_URL + '/query', { method:'POST', body: params })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      if (data.error) { console.error('[PMCT] Survey API error:', data.error); }
+      console.log('[PMCT] Survey features:', (data.features || []).length);
+      surveyData = (data.features || []).map(function(f) {
+        return Object.assign({}, f.attributes, { _x: f.geometry ? f.geometry.x : null, _y: f.geometry ? f.geometry.y : null });
+      });
+    });
+}
+
+function fetchOD() {
+  var params = new URLSearchParams({ where:'1=1', outFields:'*', f:'json', token: TOKEN });
+  return fetch(OD_URL + '/query', { method:'POST', body: params })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      if (data.error) { console.error('[PMCT] OD API error:', data.error); }
+      console.log('[PMCT] OD features:', (data.features || []).length);
+      odData = (data.features || []).map(function(f) { return f.attributes; });
+    });
+}
+
+// ============================
+// HELPERS
+// ============================
+function countBy(arr, key) {
+  const c = {}; arr.forEach(r => { const v = r[key] || 'N/D'; c[v] = (c[v]||0)+1; }); return c;
+}
+function fc(m) {
+  if (m<=15) return {bg:'#10b981',cls:'bg-green',lb:'< 15 min'};
+  if (m<=30) return {bg:'#f59e0b',cls:'bg-yellow',lb:'15-30 min'};
+  if (m<=45) return {bg:'#f97316',cls:'bg-orange',lb:'30-45 min'};
+  return {bg:'#ef4444',cls:'bg-red',lb:'> 45 min'};
+}
+
+// ============================
+// KPIs
+// ============================
+function renderKPIs() {
+  const total = surveyData.length;
+  const cocheSolo = surveyData.filter(s => s._c_mo_te_desplazas_habitualment === 'Coche (yo solo)').length;
+  const tp = surveyData.filter(s => ['Tren o Metro o Tranvía','Autobús'].includes(s._c_mo_te_desplazas_habitualment)).length;
+  const w15 = odData.filter(o => o.tiempo_min <= 15).reduce((s,o) => s + (o.num_trabajadores||0), 0);
+  const totalW = odData.reduce((s,o) => s + (o.num_trabajadores||0), 0);
+  const avgTime = (odData.reduce((s,o) => s + o.tiempo_min * (o.num_trabajadores||1), 0) / totalW).toFixed(1);
+
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi"><div class="val">${total}</div><div class="lbl" data-i18n="kpi1">${I18N[lang].kpi1}</div></div>
+    <div class="kpi green"><div class="val">${Math.round(w15/totalW*100)}%</div><div class="lbl" data-i18n="kpi2">${I18N[lang].kpi2}</div></div>
+    <div class="kpi yellow"><div class="val">${Math.round(cocheSolo/total*100)}%</div><div class="lbl" data-i18n="kpi3">${I18N[lang].kpi3}</div></div>
+    <div class="kpi orange"><div class="val">${avgTime} min</div><div class="lbl" data-i18n="kpi4">${I18N[lang].kpi4}</div></div>
+    <div class="kpi red"><div class="val">${Math.round(tp/total*100)}%</div><div class="lbl" data-i18n="kpi5">${I18N[lang].kpi5}</div></div>
+  `;
+}
+
+// ============================
+// MAP (ArcGIS JS API 4.31)
+// ============================
+function renderMap() {
+  require([
+    "esri/Map","esri/views/MapView",
+    "esri/layers/FeatureLayer","esri/layers/GraphicsLayer",
+    "esri/Graphic","esri/symbols/SimpleLineSymbol",
+    "esri/symbols/SimpleMarkerSymbol","esri/renderers/SimpleRenderer",
+    "esri/renderers/UniqueValueRenderer","esri/PopupTemplate",
+    "esri/geometry/Point"
+  ], function(Map, MapView, FeatureLayer, GraphicsLayer, Graphic, SimpleLineSymbol, SimpleMarkerSymbol, SimpleRenderer, UniqueValueRenderer, PopupTemplate, Point) {
+
+    var map = new Map({ basemap: "gray-vector" });
+    var view = new MapView({
+      container: "mapViewDiv", map: map, center: [-2.88, 43.22], zoom: 10,
+      ui: { components: ["zoom"] },
+      popup: { dockEnabled: true, dockOptions: { position: "bottom-right", breakpoint: false } }
+    });
+
+    // OD Lines FeatureLayer (live)
+    var odLayer = new FeatureLayer({
+      url: OD_URL, title: "Líneas OD",
+      renderer: new UniqueValueRenderer({
+        field: "franja",
+        uniqueValueInfos: [
+          { value: "< 15 min", symbol: new SimpleLineSymbol({ color: "#10b981", width: 2.5 }), label: "< 15 min" },
+          { value: "15-30 min", symbol: new SimpleLineSymbol({ color: "#f59e0b", width: 2 }), label: "15-30 min" },
+          { value: "30-45 min", symbol: new SimpleLineSymbol({ color: "#f97316", width: 1.5 }), label: "30-45 min" },
+          { value: "> 45 min", symbol: new SimpleLineSymbol({ color: "#ef4444", width: 1.5 }), label: "> 45 min" }
+        ]
+      }),
+      popupTemplate: new PopupTemplate({
+        title: "{municipio_origen} → Atxuri",
+        content: "<b>{tiempo_min} min</b> · {distancia_km} km<br>{num_trabajadores} trabajador(es)"
+      })
+    });
+
+    // Survey points FeatureLayer (live)
+    var surveyLayer = new FeatureLayer({
+      url: SURVEY_URL, title: "Residencias",
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({ color: [26,115,232,160], outline: { color: "#fff", width: 1 }, size: 7 })
+      }),
+      popupTemplate: new PopupTemplate({
+        title: "{_d_nde_vives_en_qu_municipio_ex}",
+        content: "<b>Modo:</b> {_c_mo_te_desplazas_habitualment}<br><b>Edad:</b> {edad}<br><b>Género:</b> {g_nero}"
+      })
+    });
+
+    // Destination marker
+    var destLayer = new GraphicsLayer({ title: "Destino" });
+    destLayer.add(new Graphic({
+      geometry: new Point({ longitude: DEST.x, latitude: DEST.y }),
+      symbol: new SimpleMarkerSymbol({ color: "#dc2626", outline: { color: "#fff", width: 2 }, size: 14, style: "diamond" }),
+      popupTemplate: new PopupTemplate({ title: "Estación Atxuri", content: "Sede Euskotren — Bilbao" })
+    }));
+
+    map.addMany([odLayer, surveyLayer, destLayer]);
+
+  // Custom legend
+  document.getElementById('mapLegend').innerHTML = `
+    <div class="ml-item"><div class="ml-line" style="background:#10b981"></div> ${I18N[lang].leg15}</div>
+    <div class="ml-item"><div class="ml-line" style="background:#f59e0b"></div> ${I18N[lang].leg30}</div>
+    <div class="ml-item"><div class="ml-line" style="background:#f97316"></div> ${I18N[lang].leg45}</div>
+    <div class="ml-item"><div class="ml-line" style="background:#ef4444"></div> ${I18N[lang].leg60}</div>
+    <div class="ml-item"><div class="ml-dot" style="background:rgba(26,115,232,.7)"></div> ${I18N[lang].legRes}</div>
+    <div class="ml-item"><div class="ml-dot" style="background:#dc2626"></div> ${I18N[lang].legDest}</div>
+  `;
+  }); // end require
+}
+
+// ============================
+// OD TABLE
+// ============================
+function renderODTable() {
+  const maxW = Math.max(...odData.map(o => o.num_trabajadores || 1));
+  const totalW = odData.reduce((s,o) => s + (o.num_trabajadores||0), 0);
+  const sorted = [...odData].sort((a,b) => a.tiempo_min - b.tiempo_min);
+  document.getElementById('odTbody').innerHTML = sorted.map(o => {
+    const c = fc(o.tiempo_min);
+    const pct = Math.round((o.num_trabajadores||0)/totalW*100);
+    const bw = Math.round((o.num_trabajadores||0)/maxW*100);
+    return `<tr><td><strong>${o.municipio_origen}</strong></td><td>${o.tiempo_min} min</td><td>${o.distancia_km} km</td><td><div class="bar-cell"><div class="bar-fill" style="width:${bw}%;background:${c.bg}"></div><span>${o.num_trabajadores} (${pct}%)</span></div></td><td><span class="badge ${c.cls}">${c.lb}</span></td><td><div class="bar-cell"><div class="bar-fill" style="width:${bw}%;background:${c.bg}"></div></div></td></tr>`;
+  }).join('');
+}
+
+// ============================
+// CHARTS
+// ============================
+var COLORS = ['#1a73e8','#ea4335','#fbbc04','#34a853','#ff6d01','#46bdc6','#7b61ff'];
+var charts = {};
+
+function renderCharts() {
+  // Mode
+  const modes = countBy(surveyData, '_c_mo_te_desplazas_habitualment');
+  const mL = Object.entries(modes).sort((a,b)=>b[1]-a[1]);
+  charts.mode = new Chart(document.getElementById('chMode'), { type:'bar', data:{ labels:mL.map(m=>m[0].length>20?m[0].slice(0,18)+'…':m[0]), datasets:[{data:mL.map(m=>m[1]),backgroundColor:COLORS,borderRadius:6,barThickness:26}]}, options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}});
+
+  // Hour
+  const hours = {};
+  surveyData.forEach(s => { if(s._a_qu_hora_llegaste_al_trabajo){const h=parseInt(s._a_qu_hora_llegaste_al_trabajo);if(!isNaN(h)){const slot=h.toString().padStart(2,'0')+':00';hours[slot]=(hours[slot]||0)+1;}}});
+  const hL = Object.keys(hours).sort();
+  charts.hour = new Chart(document.getElementById('chHour'), { type:'bar', data:{labels:hL,datasets:[{data:hL.map(h=>hours[h]),backgroundColor:'#1a73e8',borderRadius:6,barThickness:32}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}});
+
+  // Age
+  const ages = countBy(surveyData, 'edad');
+  const ageOrder = ['18-35','36-45','46-59','+60'];
+  charts.age = new Chart(document.getElementById('chAge'), { type:'doughnut', data:{labels:ageOrder,datasets:[{data:ageOrder.map(a=>ages[a]||0),backgroundColor:['#34a853','#1a73e8','#fbbc04','#ea4335'],borderWidth:0,spacing:2}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}}}}});
+
+  // Gender
+  const genders = countBy(surveyData, 'g_nero');
+  charts.gender = new Chart(document.getElementById('chGender'), { type:'doughnut', data:{labels:Object.keys(genders),datasets:[{data:Object.values(genders),backgroundColor:['#1a73e8','#ea4335'],borderWidth:0,spacing:2}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}}}}});
+
+  // Time bands
+  const bands = {'< 15 min':0,'15-30 min':0,'30-45 min':0,'> 45 min':0};
+  odData.forEach(o => { const f=fc(o.tiempo_min); bands[f.lb]+=(o.num_trabajadores||0); });
+  charts.band = new Chart(document.getElementById('chBand'), { type:'doughnut', data:{labels:Object.keys(bands),datasets:[{data:Object.values(bands),backgroundColor:['#10b981','#f59e0b','#f97316','#ef4444'],borderWidth:0,spacing:2}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}}}}});
+
+  // Motor type
+  const motors = countBy(surveyData.filter(s=>s.el_motor_es_solo_si_coche_soloa), 'el_motor_es_solo_si_coche_soloa');
+  delete motors['N/D']; delete motors[''];
+  charts.motor = new Chart(document.getElementById('chMotor'), { type:'bar', data:{labels:Object.keys(motors),datasets:[{data:Object.values(motors),backgroundColor:['#374151','#6b7280','#10b981','#1a73e8'],borderRadius:6}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}});
+}
+
+// ============================
+// GAP ANALYSIS
+// ============================
+function renderGapAnalysis() {
+  const actual = countBy(surveyData, '_c_mo_te_desplazas_habitualment');
+  const pref = countBy(surveyData, '_cu_l_ser_a_tu_preferencia_para');
+  // Normalize preference names to match actual
+  const prefMap = {'Transporte público':'Tren o Metro o Tranvía','Coche':'Coche (yo solo)','Coche compartido':'Coche (Compartido)','Bicicleta (normal o eléctrica)':'Bicicleta','Transporte de empresa':'Otros','Moto':'Moto','Andando':'Andando'};
+  const prefNorm = {};
+  Object.entries(pref).forEach(([k,v]) => { const nk = prefMap[k] || k; prefNorm[nk] = (prefNorm[nk]||0)+v; });
+
+  const allModes = [...new Set([...Object.keys(actual),...Object.keys(prefNorm)])].filter(m=>m!=='N/D');
+  const total = surveyData.length;
+  const maxPct = Math.max(...allModes.map(m => Math.max((actual[m]||0)/total*100, (prefNorm[m]||0)/total*100)));
+
+  document.getElementById('gapBars').innerHTML = allModes.sort((a,b)=>(actual[b]||0)-(actual[a]||0)).map(m => {
+    const aPct = ((actual[m]||0)/total*100);
+    const pPct = ((prefNorm[m]||0)/total*100);
+    const aW = aPct/maxPct*100;
+    const pW = pPct/maxPct*100;
+    return `<div class="gap-bar">
+      <div class="gap-label">${m.length>22?m.slice(0,20)+'…':m}</div>
+      <div style="flex:1">
+        <div style="display:flex;gap:2px;margin-bottom:2px"><div class="gap-actual" style="width:${aW}%;min-width:18px">${Math.round(aPct)}%</div></div>
+        <div style="display:flex;gap:2px"><div class="gap-pref" style="width:${pW}%;min-width:18px">${Math.round(pPct)}%</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Opportunity chart (delta)
+  const deltas = allModes.map(m => ({ mode: m, delta: (prefNorm[m]||0) - (actual[m]||0) })).sort((a,b)=>b.delta-a.delta);
+  charts.opportunity = new Chart(document.getElementById('chOpportunity'), {
+    type: 'bar',
+    data: {
+      labels: deltas.map(d => d.mode.length>18?d.mode.slice(0,16)+'…':d.mode),
+      datasets: [{
+        data: deltas.map(d => d.delta),
+        backgroundColor: deltas.map(d => d.delta >= 0 ? '#10b981' : '#ef4444'),
+        borderRadius: 4
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=> (c.raw>0?'+':'')+c.raw+' personas'}} },
+      scales:{ x:{grid:{color:'#f0f0f0'}}, y:{grid:{display:false}} }
+    }
+  });
+}
+
+// ============================
+// SIMULATOR
+// ============================
+function renderSimulator() {
+  const cocheSolo = surveyData.filter(s => s._c_mo_te_desplazas_habitualment === 'Coche (yo solo)').length;
+  const motos = surveyData.filter(s => s._c_mo_te_desplazas_habitualment === 'Moto').length;
+
+  document.getElementById('simSliders').innerHTML = `
+    <div class="sim-row"><label data-i18n="simCoche">${I18N[lang].simCoche}</label><input type="range" min="0" max="100" value="30" id="slCoche" oninput="updateSim()"><span class="sim-val" id="vlCoche">30%</span></div>
+    <div class="sim-row"><label data-i18n="simMoto">${I18N[lang].simMoto}</label><input type="range" min="0" max="100" value="20" id="slMoto" oninput="updateSim()"><span class="sim-val" id="vlMoto">20%</span></div>
+    <div class="sim-row"><label data-i18n="simCompartir">${I18N[lang].simCompartir}</label><input type="range" min="0" max="100" value="15" id="slCompartir" oninput="updateSim()"><span class="sim-val" id="vlCompartir">15%</span></div>
+  `;
+
+  window.updateSim = function() {
+    const pCoche = parseInt(document.getElementById('slCoche').value);
+    const pMoto = parseInt(document.getElementById('slMoto').value);
+    const pComp = parseInt(document.getElementById('slCompartir').value);
+    document.getElementById('vlCoche').textContent = pCoche + '%';
+    document.getElementById('vlMoto').textContent = pMoto + '%';
+    document.getElementById('vlCompartir').textContent = pComp + '%';
+
+    const cocheToTP = Math.round(cocheSolo * pCoche / 100);
+    const motoToBici = Math.round(motos * pMoto / 100);
+    const cocheToComp = Math.round(cocheSolo * pComp / 100);
+
+    // Average distance for car drivers
+    const avgKm = odData.reduce((s,o) => s + o.distancia_km * (o.num_trabajadores||0), 0) / odData.reduce((s,o) => s + (o.num_trabajadores||0), 0);
+    const co2Save = (cocheToTP * (170-30) * avgKm * 2 / 1000) + (motoToBici * 90 * avgKm * 2 / 1000) + (cocheToComp * (170-85) * avgKm * 2 / 1000);
+    const lessCards = cocheToTP + motoToBici + cocheToComp;
+    const moreTP = cocheToTP;
+
+    document.getElementById('simResults').innerHTML = `
+      <div class="sim-card pos"><div class="sim-big">-${co2Save.toFixed(1)} kg</div><div class="sim-lbl" data-i18n="simCO2">${I18N[lang].simCO2}</div></div>
+      <div class="sim-card pos"><div class="sim-big">-${lessCards}</div><div class="sim-lbl" data-i18n="simCoches">${I18N[lang].simCoches}</div></div>
+      <div class="sim-card pos"><div class="sim-big">+${moreTP}</div><div class="sim-lbl" data-i18n="simTP">${I18N[lang].simTP}</div></div>
+    `;
+  };
+  window.updateSim();
+}
+
+// ============================
+// SUSTAINABILITY
+// ============================
+function renderSustainability() {
+  // Calculate CO2 per person per day (round trip)
+  const avgKmByMode = {};
+  surveyData.forEach(s => {
+    const mode = s._c_mo_te_desplazas_habitualment;
+    const od = odData.find(o => {
+      const dx = Math.abs((o.origen_x||0) - (s._x||0));
+      const dy = Math.abs((o.origen_y||0) - (s._y||0));
+      return dx < 0.02 && dy < 0.02;
+    });
+    if (!avgKmByMode[mode]) avgKmByMode[mode] = { totalKm: 0, count: 0 };
+    avgKmByMode[mode].totalKm += (od ? od.distancia_km : 15);
+    avgKmByMode[mode].count++;
+  });
+
+  let totalCO2 = 0;
+  const co2ByMode = {};
+  surveyData.forEach(s => {
+    const mode = s._c_mo_te_desplazas_habitualment || 'N/D';
+    const ef = CO2_FACTORS[mode] || 100;
+    const avg = avgKmByMode[mode] ? avgKmByMode[mode].totalKm / avgKmByMode[mode].count : 15;
+    const daily = ef * avg * 2 / 1000; // kg/day round trip
+    totalCO2 += daily;
+    co2ByMode[mode] = (co2ByMode[mode] || 0) + daily;
+  });
+
+  // Preferred scenario
+  const prefMap = {'Transporte público':'Tren o Metro o Tranvía','Coche':'Coche (yo solo)','Coche compartido':'Coche (Compartido)','Bicicleta (normal o eléctrica)':'Bicicleta','Transporte de empresa':'Autobús','Moto':'Moto','Andando':'Andando'};
+  let prefCO2 = 0;
+  surveyData.forEach(s => {
+    const pref = s._cu_l_ser_a_tu_preferencia_para || '';
+    const mode = prefMap[pref] || pref;
+    const ef = CO2_FACTORS[mode] || 100;
+    const origMode = s._c_mo_te_desplazas_habitualment || 'N/D';
+    const avg = avgKmByMode[origMode] ? avgKmByMode[origMode].totalKm / avgKmByMode[origMode].count : 15;
+    prefCO2 += ef * avg * 2 / 1000;
+  });
+
+  const saving = totalCO2 - prefCO2;
+  const savingPct = Math.round(saving / totalCO2 * 100);
+
+  // Gauges
+  document.getElementById('gaugeRow').innerHTML = `
+    <div class="gauge-card"><div class="gauge-val" style="color:#ef4444">${totalCO2.toFixed(1)}</div><div class="gauge-lbl" data-i18n="susActual">${I18N[lang].susActual}</div><div class="gauge-bar"><div class="gauge-fill" style="width:100%;background:#ef4444"></div></div></div>
+    <div class="gauge-card"><div class="gauge-val" style="color:#f59e0b">${prefCO2.toFixed(1)}</div><div class="gauge-lbl" data-i18n="susPref">${I18N[lang].susPref}</div><div class="gauge-bar"><div class="gauge-fill" style="width:${Math.round(prefCO2/totalCO2*100)}%;background:#f59e0b"></div></div></div>
+    <div class="gauge-card"><div class="gauge-val" style="color:#10b981">-${savingPct}%</div><div class="gauge-lbl" data-i18n="susAhorro">${I18N[lang].susAhorro}</div><div class="gauge-bar"><div class="gauge-fill" style="width:${savingPct}%;background:#10b981"></div></div></div>
+  `;
+
+  // CO2 by mode chart
+  const modeLabels = Object.keys(co2ByMode).filter(m=>m!=='N/D').sort((a,b)=>co2ByMode[b]-co2ByMode[a]);
+  charts.co2 = new Chart(document.getElementById('chCO2'), {
+    type:'bar', data:{ labels:modeLabels.map(m=>m.length>18?m.slice(0,16)+'…':m),
+    datasets:[{data:modeLabels.map(m=>parseFloat(co2ByMode[m].toFixed(1))),backgroundColor:COLORS,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
+  });
+
+  // CO2 save comparison
+  charts.co2save = new Chart(document.getElementById('chCO2Save'), {
+    type:'bar', data:{ labels:['Situación Actual','Si preferencia'],
+    datasets:[{data:[parseFloat(totalCO2.toFixed(1)), parseFloat(prefCO2.toFixed(1))],backgroundColor:['#ef4444','#10b981'],borderRadius:8,barThickness:60}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
+  });
+}
+</script>
+</body>
+</html>
