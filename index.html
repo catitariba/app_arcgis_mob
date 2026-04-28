@@ -1,5 +1,5 @@
 <!--
-  PMCT Euskotren Atxuri — Aplicación de Movilidad Sostenible
+  PMCT Euskotren Atxuri — Cuaderno Ejecutivo de Movilidad Sostenible
   ArcGIS Maps SDK for JavaScript 4.31 + Chart.js
   Datos: Feature Services en vivo (Survey123 + Lineas OD)
   Idiomas: Español / Euskara
@@ -10,111 +10,201 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PMCT Euskotren Atxuri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.31/"></script>
 <style>
-  html,body{margin:0;height:100%;font-family:system-ui,sans-serif;overflow:hidden}
-  calcite-shell{--calcite-shell-header-height:56px}
+  :root{
+    --mint:rgba(16,185,129,.06);--mint2:rgba(16,185,129,.12);--mint3:rgba(16,185,129,.22);
+    --green:#10b981;--green-dark:#059669;--red:#ef4444;--gray:#6b7280;--dark:#1f2937;
+    --card:rgba(255,255,255,.55);--glass:rgba(255,255,255,.35);
+    --sidebar-w:220px;--radius:16px;
+    --blur:24px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:'Inter',system-ui,sans-serif;overflow:hidden;background:#e8efe9}
+  body::before{content:'';position:fixed;inset:0;z-index:-2;background:
+    radial-gradient(ellipse 80% 60% at 10% 20%,rgba(167,243,208,.45),transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 15%,rgba(196,231,214,.5),transparent 55%),
+    radial-gradient(ellipse 70% 55% at 50% 80%,rgba(209,250,229,.35),transparent 50%),
+    radial-gradient(ellipse 40% 40% at 75% 65%,rgba(167,243,208,.25),transparent 45%),
+    linear-gradient(160deg,#dff0e4 0%,#e8efe9 40%,#f1f5f2 70%,#e4ede6 100%)
+  }
+  body::after{content:'';position:fixed;inset:0;z-index:-1;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='.6' fill='%2310b98115'/%3E%3C/svg%3E");background-size:30px 30px;opacity:.5}
 
-  /* LOGIN SCREEN */
-  .login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#e8f0fe 0%,#f0f2f5 50%,#e0f2f1 100%);z-index:9999;display:flex;align-items:center;justify-content:center}
-  .login-box{background:#fff;border-radius:20px;padding:40px 36px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.12);text-align:center}
-  .login-box .logo-icon{width:64px;height:64px;background:linear-gradient(135deg,#1a73e8,#0d47a1);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
-  .login-box .logo-icon svg{width:36px;height:36px;fill:#fff}
-  .login-box h2{margin:0 0 6px;color:#1f2937;font-size:22px;font-weight:700}
-  .login-box .sub{color:#6b7280;font-size:13px;margin:0 0 28px;line-height:1.5}
-  .login-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s}
-  .login-btn:hover{background:#1557b0}
+  /* LOGIN */
+  .login-overlay{position:fixed;inset:0;background:linear-gradient(160deg,#dff0e4,#e8efe9,#e4ede6);z-index:9999;display:flex;align-items:center;justify-content:center}
+  .login-box{background:var(--card);backdrop-filter:blur(20px);border-radius:24px;padding:48px 40px;max-width:420px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,.08);text-align:center;border:1px solid rgba(16,185,129,.12)}
+  .login-box .logo-area{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px}
+  .login-box .logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--green),var(--green-dark));border-radius:12px;display:flex;align-items:center;justify-content:center}
+  .login-box .logo-icon svg{width:28px;height:28px;fill:#fff}
+  .login-box .logo-text{text-align:left}.login-box .logo-text .t1{font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:1px}.login-box .logo-text .t2{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--dark)}
+  .login-box h2{font-family:'Fraunces',serif;margin:0 0 4px;color:var(--dark);font-size:24px;font-weight:600}
+  .login-box .sub{color:var(--gray);font-size:13px;margin:0 0 32px;line-height:1.6}
+  .login-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+  .login-btn:hover{background:var(--green-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,.3)}
   .login-btn svg{width:20px;height:20px;fill:#fff}
-  .login-box .hint{font-size:11px;color:#999;margin-top:16px;line-height:1.4}
+  .login-box .hint{font-size:11px;color:#9ca3af;margin-top:20px;line-height:1.5}
   .login-loading{display:none;flex-direction:column;align-items:center;gap:12px}
-  .login-loading .spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#1a73e8;border-radius:50%;animation:spin .8s linear infinite}
+  .login-loading .spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
+  /* LAYOUT */
+  .app-layout{display:flex;height:100vh}
+
+  /* SIDEBAR */
+  .sidebar{width:var(--sidebar-w);background:rgba(255,255,255,.4);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border-right:1px solid rgba(255,255,255,.5);display:flex;flex-direction:column;padding:20px 16px;border-radius:0 24px 24px 0;margin:12px 0 12px 0;overflow:hidden;box-shadow:4px 0 24px rgba(0,0,0,.03)}
+  .sidebar .logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;padding:0 4px}
+  .sidebar .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--green),var(--green-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sidebar .logo-icon svg{width:22px;height:22px;fill:#fff}
+  .sidebar .logo-text .t1{font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.8px}.sidebar .logo-text .t2{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--dark);line-height:1.1}
+  .sidebar nav{flex:1;display:flex;flex-direction:column;gap:2px}
+  .nav-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border:none;background:transparent;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--gray);transition:all .15s;text-align:left;width:100%;font-family:'Inter',sans-serif}
+  .nav-btn:hover{background:var(--mint);color:var(--dark)}
+  .nav-btn.active{background:var(--green);color:#fff}
+  .nav-btn svg{width:18px;height:18px;flex-shrink:0}
+  .nav-btn.active svg{stroke:#fff}
+  .sidebar-footer{margin-top:auto;padding-top:16px}
+  .lang-row{display:flex;gap:4px;margin-bottom:12px}
+  .lang-pill{padding:6px 14px;border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+  .lang-pill.active{background:var(--dark);color:#fff}.lang-pill:not(.active){background:transparent;color:var(--gray)}
+  .sidebar-status{font-size:11px;color:#9ca3af;display:flex;align-items:center;gap:6px;padding:0 4px}
+  .sidebar-status .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .user-name{font-size:11px;color:var(--gray);padding:0 4px;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .logout-btn{border:none;background:transparent;color:#9ca3af;font-size:11px;cursor:pointer;padding:4px;font-family:'Inter',sans-serif}
+  .logout-btn:hover{color:var(--red)}
+
+  /* MAIN */
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
   /* HEADER */
-  .app-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:56px;background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff}
-  .app-header h1{font-size:18px;font-weight:600;margin:0}
-  .app-header .subtitle{font-size:12px;opacity:.8}
-  .header-right{display:flex;align-items:center;gap:12px}
-  .lang-toggle{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;font-weight:500}
-  .lang-toggle:hover{background:rgba(255,255,255,.35)}
+  .top-header{display:flex;align-items:flex-start;justify-content:space-between;padding:24px 32px 0;flex-shrink:0}
+  .top-header .hdr-left .overline{font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+  .top-header .hdr-left h1{font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--dark);margin:0 0 2px}
+  .top-header .hdr-left .sub{font-size:13px;color:#9ca3af}
+  .resp-badge{text-align:center;background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.55);border-radius:14px;padding:10px 18px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 16px rgba(0,0,0,.03)}
+  .resp-badge .num{font-family:'Fraunces',serif;font-size:32px;font-weight:700;color:var(--dark);line-height:1}.resp-badge .lbl{font-size:9px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:1px}
 
-  /* SIDEBAR NAV */
-  .nav-panel{width:56px;background:#f8fafc;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;align-items:center;padding-top:8px;gap:4px}
-  .nav-btn{width:44px;height:44px;border:none;background:transparent;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;transition:all .15s}
-  .nav-btn:hover{background:#e5e7eb;color:#1a73e8}
-  .nav-btn.active{background:#1a73e8;color:#fff}
-  .nav-btn svg{width:20px;height:20px}
-
-  /* MAIN CONTENT */
-  .main-area{display:flex;flex:1;overflow:hidden}
-  .content-panel{flex:1;overflow-y:auto;background:#f0f2f5}
-  .section{display:none;padding:20px;min-height:100%}
-  .section.active{display:block}
-
-  /* KPI ROW */
-  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
-  .kpi{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:4px solid #1a73e8}
-  .kpi .val{font-size:26px;font-weight:700;color:#1f2937}.kpi .lbl{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
-  .kpi.green{border-color:#10b981}.kpi.yellow{border-color:#f59e0b}.kpi.orange{border-color:#f97316}.kpi.red{border-color:#ef4444}
+  /* CONTENT */
+  .content-scroll{flex:1;overflow-y:auto;padding:20px 32px 32px}
+  .section{display:none}.section.active{display:block}
+  .sec-header{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.6);border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 20px rgba(0,0,0,.03)}
+  .sec-header .sec-num{font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+  .sec-header h2{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--dark);margin:0 0 6px}
+  .sec-header p{font-size:13px;color:var(--gray);margin:0;line-height:1.6}
 
   /* CARDS */
-  .card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:18px}
-  .card-h{padding:12px 18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}
-  .card-h h3{font-size:13px;font-weight:600;margin:0}.card-h .tag{font-size:10px;background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:10px;font-weight:500}
-  .card-b{padding:16px 18px}
-  .card-b.map-b{padding:0;height:440px;position:relative}
-
-  /* GRID LAYOUTS */
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+  .card{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.55);border-radius:var(--radius);padding:20px 24px;margin-bottom:16px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 20px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.6)}
+  .card-title{font-size:14px;font-weight:600;color:var(--dark);margin:0 0 16px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:16px}
   .chart-wrap{position:relative;height:260px}
   .chart-wrap.tall{height:300px}
+  .chart-wrap.short{height:200px}
 
-  /* GAP ANALYSIS */
-  .gap-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-  .gap-label{width:140px;font-size:12px;text-align:right;color:#374151;font-weight:500}
-  .gap-bars{flex:1;display:flex;height:22px;border-radius:4px;overflow:hidden;position:relative}
-  .gap-actual{background:#1a73e8;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600}
-  .gap-pref{background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600}
-  .gap-legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:#6b7280}
-  .gap-legend span{display:flex;align-items:center;gap:4px}
-  .gap-legend .dot{width:10px;height:10px;border-radius:50%}
+  /* KPIs */
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+  .kpi{background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.6);border-radius:var(--radius);padding:22px 24px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 20px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.7);position:relative;overflow:hidden}
+  .kpi::after{content:'';position:absolute;inset:0;border-radius:var(--radius);opacity:.12;pointer-events:none}
+  .kpi.tint-green::after{background:linear-gradient(135deg,rgba(16,185,129,.35),transparent 70%)}
+  .kpi.tint-red::after{background:linear-gradient(135deg,rgba(239,68,68,.3),transparent 70%)}
+  .kpi.tint-amber::after{background:linear-gradient(135deg,rgba(245,158,11,.3),transparent 70%)}
+  .kpi.tint-neutral::after{background:linear-gradient(135deg,rgba(107,114,128,.15),transparent 70%)}
+  .kpi .val{font-family:'Fraunces',serif;font-size:40px;font-weight:700;line-height:1.1;position:relative;z-index:1}
+  .kpi .lbl{font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;position:relative;z-index:1}
+  .kpi .sub-lbl{font-size:11px;color:#9ca3af;margin-top:2px;position:relative;z-index:1}
+  .kpi .val.green{color:var(--green)}.kpi .val.red{color:var(--red)}.kpi .val.dark{color:var(--dark)}
 
-  /* SIMULATOR */
-  .sim-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 14px;background:#f8fafc;border-radius:8px}
-  .sim-row label{width:180px;font-size:13px;font-weight:500;color:#374151}
-  .sim-row input[type=range]{flex:1}
-  .sim-row .sim-val{width:50px;text-align:right;font-weight:700;color:#1a73e8;font-size:14px}
-  .sim-result{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
-  .sim-card{background:#fff;border-radius:12px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .sim-card .sim-big{font-size:32px;font-weight:700}.sim-card .sim-lbl{font-size:11px;color:#6b7280;margin-top:4px}
-  .sim-card.pos .sim-big{color:#10b981}.sim-card.neg .sim-big{color:#ef4444}
-
-  /* SUSTAINABILITY GAUGE */
-  .gauge-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
-  .gauge-card{background:#fff;border-radius:12px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .gauge-card .gauge-val{font-size:36px;font-weight:800}.gauge-card .gauge-lbl{font-size:12px;color:#6b7280;margin-top:4px}
-  .gauge-card .gauge-bar{height:8px;background:#e5e7eb;border-radius:4px;margin-top:12px;overflow:hidden}
-  .gauge-card .gauge-fill{height:100%;border-radius:4px;transition:width .5s}
+  /* MAP */
+  .map-container{height:calc(100vh - 260px);min-height:400px;border-radius:var(--radius);overflow:hidden;position:relative;border:1px solid rgba(16,185,129,.1)}
+  .map-legend{position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,.92);border-radius:10px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.1);z-index:2;font-size:11px}
+  .map-legend .ml-item{display:flex;align-items:center;gap:6px;margin-bottom:4px}.map-legend .ml-item:last-child{margin:0}
+  .ml-line{width:20px;height:3px;border-radius:2px}.ml-dot{width:8px;height:8px;border-radius:50%}
 
   /* OD TABLE */
   .od-tbl{width:100%;border-collapse:collapse;font-size:12px}
-  .od-tbl thead{background:#f8fafc}.od-tbl th{padding:8px 10px;text-align:left;font-weight:600;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #e5e7eb}
-  .od-tbl td{padding:7px 10px;border-bottom:1px solid #e5e7eb}.od-tbl tr:hover{background:#f8fafc}
+  .od-tbl thead{background:rgba(16,185,129,.04)}.od-tbl th{padding:8px 10px;text-align:left;font-weight:600;color:var(--gray);font-size:10px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid rgba(16,185,129,.1)}
+  .od-tbl td{padding:7px 10px;border-bottom:1px solid rgba(0,0,0,.04)}.od-tbl tr:hover{background:rgba(16,185,129,.03)}
   .badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600}
   .bg-green{background:#d1fae5;color:#065f46}.bg-yellow{background:#fef3c7;color:#92400e}.bg-orange{background:#fed7aa;color:#9a3412}.bg-red{background:#fecaca;color:#991b1b}
   .bar-cell{display:flex;align-items:center;gap:6px}.bar-fill{height:5px;border-radius:3px;min-width:2px}
 
-  /* LEGEND MAP */
-  .map-legend{position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,.92);border-radius:8px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:2;font-size:11px}
-  .map-legend .ml-item{display:flex;align-items:center;gap:6px;margin-bottom:4px}.map-legend .ml-item:last-child{margin:0}
-  .ml-line{width:20px;height:3px;border-radius:2px}.ml-dot{width:8px;height:8px;border-radius:50%}
+  /* GAP ANALYSIS */
+  .gap-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .gap-label{width:160px;font-size:12px;text-align:right;color:var(--dark);font-weight:500;flex-shrink:0}
+  .gap-bars-wrap{flex:1;display:flex;flex-direction:column;gap:3px}
+  .gap-bar-line{height:20px;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:600;color:#fff;min-width:28px}
+  .gap-bar-actual{background:var(--dark)}.gap-bar-pref{background:var(--green)}
+  .gap-delta{width:50px;text-align:right;font-size:14px;font-weight:700;flex-shrink:0}
+  .gap-delta.pos{color:var(--green)}.gap-delta.neg{color:var(--red)}.gap-delta.zero{color:var(--gray)}
+  .insight-card{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.55);border-radius:var(--radius);padding:24px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 20px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.6)}
+  .insight-item{display:flex;gap:14px;margin-bottom:20px}.insight-item:last-child{margin:0}
+  .insight-num{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--green);line-height:1;flex-shrink:0;width:36px}
+  .insight-text{font-size:13px;color:var(--dark);line-height:1.6}
+
+  /* SIMULATOR */
+  .sim-scenario{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+  .sim-scenario:last-child{border:none}
+  .sim-icons{display:flex;flex-direction:column;align-items:center;gap:2px;width:40px;flex-shrink:0;color:var(--gray);font-size:18px}
+  .sim-icons .arrow{font-size:12px;color:var(--green)}
+  .sim-body{flex:1}
+  .sim-body .sim-label{font-size:13px;color:var(--dark);margin-bottom:8px}
+  .sim-body input[type=range]{width:100%;accent-color:var(--green)}
+  .sim-pct{font-size:15px;font-weight:700;color:var(--green);width:50px;text-align:right;flex-shrink:0}
+  .impact-card{background:var(--card);border:1px solid rgba(16,185,129,.08);border-radius:var(--radius);padding:24px;text-align:center}
+  .impact-val{font-family:'Fraunces',serif;font-size:40px;font-weight:700;line-height:1.1}
+  .impact-val.green{color:var(--green)}.impact-val.dark{color:var(--dark)}
+  .impact-lbl{font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+  .impact-divider{height:1px;background:rgba(0,0,0,.06);margin:16px 0}
+
+  /* GAUGE */
+  .gauge-card{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.55);border-radius:var(--radius);padding:24px;text-align:center;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 20px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.6)}
+  .gauge-val{font-family:'Fraunces',serif;font-size:36px;font-weight:700;line-height:1}.gauge-lbl{font-size:11px;color:var(--gray);margin-top:6px;text-transform:uppercase;letter-spacing:.3px}
+  .gauge-bar{height:6px;background:rgba(0,0,0,.06);border-radius:3px;margin-top:14px;overflow:hidden}.gauge-fill{height:100%;border-radius:3px;transition:width .5s}
+
+  /* TAG */
+  .tag{display:inline-block;font-size:10px;font-weight:600;background:var(--mint2);color:var(--green-dark);padding:4px 12px;border-radius:20px;letter-spacing:.3px}
+
+  /* ROUTE FINDER */
+  .route-layout{display:grid;grid-template-columns:1fr 380px;gap:16px;height:calc(100vh - 280px);min-height:420px}
+  .route-map-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(16,185,129,.1);position:relative}
+  .route-map-wrap #routeMapDiv{width:100%;height:100%}
+  .route-panel{display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:4px}
+  .route-search{display:flex;gap:8px}
+  .route-search input{flex:1;padding:10px 14px;border:1px solid rgba(16,185,129,.15);border-radius:10px;font-size:13px;font-family:'Inter',sans-serif;background:rgba(255,255,255,.6);backdrop-filter:blur(10px);outline:none;transition:border .15s}
+  .route-search input:focus{border-color:var(--green)}
+  .route-search button{padding:10px 16px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:background .15s}
+  .route-search button:hover{background:var(--green-dark)}
+  .route-hint{font-size:11px;color:#9ca3af;text-align:center;margin:-4px 0}
+  .route-card{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.55);border-radius:12px;padding:14px 16px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.02)}
+  .route-card:hover,.route-card.active{border-color:var(--green);box-shadow:0 4px 16px rgba(16,185,129,.1)}
+  .route-card .rc-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .route-card .rc-icon.car{background:rgba(239,68,68,.1)}.route-card .rc-icon.walk{background:rgba(16,185,129,.1)}.route-card .rc-icon.bike{background:rgba(59,130,246,.1)}.route-card .rc-icon.transit{background:rgba(245,158,11,.1)}
+  .route-card .rc-info{flex:1;min-width:0}
+  .route-card .rc-mode{font-size:12px;font-weight:600;color:var(--dark)}
+  .route-card .rc-time{font-family:'Fraunces',serif;font-size:22px;font-weight:700;line-height:1.2}
+  .route-card .rc-time.car{color:#ef4444}.route-card .rc-time.walk{color:var(--green)}.route-card .rc-time.bike{color:#3b82f6}.route-card .rc-time.transit{color:#f59e0b}
+  .route-card .rc-detail{font-size:11px;color:var(--gray)}
+  .route-card .rc-co2{text-align:right;flex-shrink:0}
+  .route-card .rc-co2 .co2-val{font-family:'Fraunces',serif;font-size:16px;font-weight:700}.route-card .rc-co2 .co2-lbl{font-size:9px;color:var(--gray);text-transform:uppercase}
+  .route-summary{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.55);border-radius:12px;padding:16px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur))}
+  .route-summary .rs-title{font-size:12px;font-weight:600;color:var(--dark);margin-bottom:10px}
+  .route-summary .rs-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.04)}
+  .route-summary .rs-row:last-child{border:none}
+  .route-summary .rs-savings{font-weight:700;color:var(--green)}
+  .route-loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--gray);font-size:13px}
+  .route-loading .spinner{width:20px;height:20px;border:2px solid #e5e7eb;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
 
   @media(max-width:900px){
-    .kpi-row{grid-template-columns:repeat(3,1fr)}.grid-2,.grid-3{grid-template-columns:1fr}
-    .sim-result,.gauge-row{grid-template-columns:1fr 1fr}
+    .sidebar{display:none}
+    .kpi-grid{grid-template-columns:1fr 1fr}
+    .grid-2,.grid-3,.grid-2-1{grid-template-columns:1fr}
+    .top-header{padding:16px 20px 0}.content-scroll{padding:12px 20px 20px}
+    .route-layout{grid-template-columns:1fr;height:auto}.route-map-wrap{height:300px}
   }
 </style>
 </head>
@@ -123,9 +213,12 @@
 <!-- LOGIN SCREEN -->
 <div class="login-overlay" id="loginScreen">
   <div class="login-box">
-    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
-    <h2>PMCT Euskotren Atxuri</h2>
-    <p class="sub">Plan de Movilidad al Centro de Trabajo<br>Inicia sesión con tu cuenta de ArcGIS Online</p>
+    <div class="logo-area">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
+      <div class="logo-text"><div class="t1">PMCT</div><div class="t2">Atxuri</div></div>
+    </div>
+    <h2>Euskotren · Sede Atxuri</h2>
+    <p class="sub">Plan de Movilidad al Centro de Trabajo<br>Cuaderno ejecutivo · 2026</p>
     <div id="loginActions">
       <button class="login-btn" onclick="doLogin()">
         <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -134,132 +227,198 @@
     </div>
     <div class="login-loading" id="loginLoading">
       <div class="spinner"></div>
-      <span style="color:#6b7280;font-size:13px">Autenticando...</span>
+      <span style="color:var(--gray);font-size:13px">Autenticando...</span>
     </div>
-    <div class="hint">Acceso restringido a usuarios de la organización Euskotren / traninfralog</div>
+    <div class="hint">Acceso restringido a usuarios de la organización</div>
   </div>
 </div>
 
-<!-- APP SHELL -->
-<div id="appShell" style="display:none;height:100vh;flex-direction:column">
+<!-- APP -->
+<div class="app-layout" id="appShell" style="display:none">
 
-  <!-- HEADER -->
-  <div class="app-header">
-    <div>
-      <h1 id="appTitle">Plan de Movilidad al Centro de Trabajo</h1>
-      <div class="subtitle" id="appSubtitle">Euskotren — Sede Atxuri, Bilbao</div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
+      <div class="logo-text"><div class="t1">PMCT</div><div class="t2">Atxuri</div></div>
     </div>
-    <div class="header-right">
-      <span id="userName" style="font-size:12px;opacity:.8"></span>
-      <button class="lang-toggle" id="langBtn" onclick="toggleLang()">🌐 Euskara</button>
-      <button class="lang-toggle" onclick="doLogout()" title="Cerrar sesión">⏻</button>
+    <nav>
+      <button class="nav-btn active" data-sec="sec1" onclick="showSection('sec1',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Visión general
+      </button>
+      <button class="nav-btn" data-sec="sec2" onclick="showSection('sec2',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+        Mapa OD
+      </button>
+      <button class="nav-btn" data-sec="sec3" onclick="showSection('sec3',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Demografía
+      </button>
+      <button class="nav-btn" data-sec="sec4" onclick="showSection('sec4',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M14 14l7 7M3 8V3h5M10 10L3 3"/></svg>
+        Brecha modal
+      </button>
+      <button class="nav-btn" data-sec="sec5" onclick="showSection('sec5',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Simulador
+      </button>
+      <button class="nav-btn" data-sec="sec6" onclick="showSection('sec6',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.5-3 9-8 9-13a9 9 0 00-18 0c0 5 3.5 10 9 13z"/><path d="M12 8v4M12 16h.01"/></svg>
+        Sostenibilidad
+      </button>
+      <button class="nav-btn" data-sec="sec7" onclick="showSection('sec7',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Mi ruta
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="lang-row">
+        <button class="lang-pill active" id="langEs" onclick="setLang('es')">ES</button>
+        <button class="lang-pill" id="langEu" onclick="setLang('eu')">EU</button>
+      </div>
+      <div class="user-name" id="userName"></div>
+      <div class="sidebar-status">
+        <div class="dot"></div>
+        <span>Datos del día · <span id="dateStr"></span></span>
+        <button class="logout-btn" onclick="doLogout()" title="Cerrar sesión">⏻</button>
+      </div>
     </div>
-  </div>
+  </aside>
 
   <!-- MAIN -->
-  <div class="main-area">
-
-    <!-- NAV SIDEBAR -->
-    <div class="nav-panel">
-      <button class="nav-btn active" data-sec="sec1" title="Visión General" onclick="showSection('sec1',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      </button>
-      <button class="nav-btn" data-sec="sec2" title="Análisis" onclick="showSection('sec2',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-      </button>
-      <button class="nav-btn" data-sec="sec3" title="Gap Analysis" onclick="showSection('sec3',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M14 14l7 7M3 8V3h5M10 10L3 3"/></svg>
-      </button>
-      <button class="nav-btn" data-sec="sec4" title="Simulador" onclick="showSection('sec4',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      </button>
-      <button class="nav-btn" data-sec="sec5" title="Sostenibilidad" onclick="showSection('sec5',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.5-3 9-8 9-13a9 9 0 00-18 0c0 5 3.5 10 9 13z"/><path d="M12 8v4M12 16h.01"/></svg>
-      </button>
+  <div class="main">
+    <div class="top-header">
+      <div class="hdr-left">
+        <div class="overline" id="appOverline">Plan de Movilidad al Centro de Trabajo</div>
+        <h1 id="appTitle">Euskotren · Sede Atxuri</h1>
+        <div class="sub" id="appSubtitle">Cuaderno ejecutivo · 2026</div>
+      </div>
+      <div class="resp-badge"><div class="num" id="totalResp">—</div><div class="lbl">Respuestas</div></div>
     </div>
 
-    <!-- CONTENT -->
-    <div class="content-panel">
+    <div class="content-scroll">
 
       <!-- SEC 1: VISIÓN GENERAL -->
       <div class="section active" id="sec1">
-        <div class="kpi-row" id="kpiRow"></div>
+        <div class="sec-header">
+          <div class="sec-num">01 · Visión General</div>
+          <h2>Una mirada al desplazamiento diario</h2>
+          <p>Estos son los pulsos que mueven el plan.</p>
+        </div>
+        <div class="kpi-grid" id="kpiRow"></div>
         <div class="card">
-          <div class="card-h"><h3 data-i18n="mapTitle">Mapa de Origen-Destino</h3><span class="tag" data-i18n="mapTag">Líneas OD + Residencias</span></div>
-          <div class="card-b map-b">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">De dónde vienen y cuánto tardan<div class="tag" id="odBadge"></div></div>
+          <div class="chart-wrap tall"><canvas id="chOD"></canvas></div>
+        </div>
+      </div>
+
+      <!-- SEC 2: MAPA OD -->
+      <div class="section" id="sec2">
+        <div class="sec-header">
+          <div class="sec-num">02 · Mapa OD</div>
+          <h2>Origen-Destino en el territorio</h2>
+          <p>Líneas OD y residencias de los trabajadores sobre el mapa.</p>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="map-container">
             <div id="mapViewDiv" style="width:100%;height:100%"></div>
             <div class="map-legend" id="mapLegend"></div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-h"><h3 data-i18n="odTableTitle">Matriz Origen-Destino → Estación Atxuri</h3><span class="tag">28 municipios · Automóvil</span></div>
-          <div class="card-b" style="padding:0;max-height:380px;overflow-y:auto"><table class="od-tbl"><thead><tr><th data-i18n="thMuni">Municipio</th><th data-i18n="thTime">Tiempo</th><th data-i18n="thDist">Distancia</th><th data-i18n="thWorkers">Trabajadores</th><th data-i18n="thBand">Franja</th><th data-i18n="thProp" style="width:20%">Proporción</th></tr></thead><tbody id="odTbody"></tbody></table></div>
-        </div>
       </div>
 
-      <!-- SEC 2: ANÁLISIS -->
-      <div class="section" id="sec2">
-        <div class="grid-2">
-          <div class="card"><div class="card-h"><h3 data-i18n="modeTitle">Modo de Transporte</h3></div><div class="card-b"><div class="chart-wrap tall"><canvas id="chMode"></canvas></div></div></div>
-          <div class="card"><div class="card-h"><h3 data-i18n="schedTitle">Hora de Llegada</h3></div><div class="card-b"><div class="chart-wrap tall"><canvas id="chHour"></canvas></div></div></div>
+      <!-- SEC 3: DEMOGRAFÍA -->
+      <div class="section" id="sec3">
+        <div class="sec-header">
+          <div class="sec-num">03 · Demografía</div>
+          <h2>Quién compone la plantilla</h2>
+          <p>Distribución del modo de transporte habitual, hora de llegada, edad, género y tipo de motor.</p>
+        </div>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card"><div class="card-title">Modo de transporte</div><div class="chart-wrap tall"><canvas id="chMode"></canvas></div></div>
+          <div class="card"><div class="card-title">Hora de llegada</div><div class="chart-wrap tall"><canvas id="chHour"></canvas></div></div>
         </div>
         <div class="grid-3">
-          <div class="card"><div class="card-h"><h3 data-i18n="ageTitle">Edad</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chAge"></canvas></div></div></div>
-          <div class="card"><div class="card-h"><h3 data-i18n="genderTitle">Género</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chGender"></canvas></div></div></div>
-          <div class="card"><div class="card-h"><h3 data-i18n="bandTitle">Franjas de Tiempo OD</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chBand"></canvas></div></div></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3 data-i18n="motorTitle">Tipo de Motor (conductores de coche)</h3></div>
-          <div class="card-b"><div class="chart-wrap" style="height:200px"><canvas id="chMotor"></canvas></div></div>
+          <div class="card"><div class="card-title">Edad</div><div class="chart-wrap"><canvas id="chAge"></canvas></div></div>
+          <div class="card"><div class="card-title">Género</div><div class="chart-wrap"><canvas id="chGender"></canvas></div></div>
+          <div class="card"><div class="card-title">Tipo de motor (coche)</div><div class="chart-wrap"><canvas id="chMotor"></canvas></div></div>
         </div>
       </div>
 
-      <!-- SEC 3: GAP ANALYSIS -->
-      <div class="section" id="sec3">
-        <div class="card">
-          <div class="card-h"><h3 data-i18n="gapTitle">Modo Actual vs. Preferencia</h3><span class="tag" data-i18n="gapTag">Oportunidades de intervención</span></div>
-          <div class="card-b">
-            <div class="gap-legend">
-              <span><div class="dot" style="background:#1a73e8"></div> <span data-i18n="gapActual">Modo actual</span></span>
-              <span><div class="dot" style="background:#10b981"></div> <span data-i18n="gapPref">Preferencia</span></span>
-            </div>
+      <!-- SEC 4: BRECHA MODAL -->
+      <div class="section" id="sec4">
+        <div class="sec-header">
+          <div class="sec-num">04 · Brecha Modal</div>
+          <h2>Lo que hacen vs. lo que querrían hacer</h2>
+          <p>La brecha entre modo actual y modo preferido marca dónde existe demanda latente.</p>
+        </div>
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">Lo que hacen vs. lo que querrían hacer<div style="display:flex;gap:12px;font-size:11px;color:var(--gray)"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--dark);display:inline-block"></span>Modo actual</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--green);display:inline-block"></span>Preferencia</span></div></div>
             <div id="gapBars"></div>
           </div>
-        </div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-h"><h3 data-i18n="insightTitle">Insights Clave</h3></div>
-            <div class="card-b" id="insightsBox" style="font-size:13px;line-height:1.7;color:#374151"></div>
-          </div>
-          <div class="card">
-            <div class="card-h"><h3 data-i18n="opportunityTitle">Oportunidades de Cambio Modal</h3></div>
-            <div class="card-b"><div class="chart-wrap"><canvas id="chOpportunity"></canvas></div></div>
+          <div class="insight-card">
+            <div class="card-title">Tres lecturas clave</div>
+            <div id="insightsBox"></div>
           </div>
         </div>
       </div>
 
-      <!-- SEC 4: SIMULADOR -->
-      <div class="section" id="sec4">
-        <div class="card">
-          <div class="card-h"><h3 data-i18n="simTitle">Simulador What-If de Cambio Modal</h3><span class="tag" data-i18n="simTag">Ajusta los escenarios</span></div>
-          <div class="card-b">
-            <div id="simSliders"></div>
-            <div class="sim-result" id="simResults"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SEC 5: SOSTENIBILIDAD -->
+      <!-- SEC 5: SIMULADOR -->
       <div class="section" id="sec5">
-        <div class="card">
-          <div class="card-h"><h3 data-i18n="susTitle">Indicadores de Sostenibilidad</h3><span class="tag" data-i18n="susTag">Huella de CO₂</span></div>
-          <div class="card-b">
-            <div class="gauge-row" id="gaugeRow"></div>
+        <div class="sec-header">
+          <div class="sec-num">05 · Simulador</div>
+          <h2>Simulador What-If</h2>
+          <p>Mueve los deslizadores para reasignar viajes a modos más sostenibles. Las cifras se recalculan en vivo.</p>
+        </div>
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-title">Escenarios</div>
+            <div id="simSliders"></div>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column">
+            <div class="card-title">Impacto</div>
+            <div id="simResults" style="flex:1;display:flex;flex-direction:column;justify-content:center"></div>
           </div>
         </div>
+      </div>
+
+      <!-- SEC 6: SOSTENIBILIDAD -->
+      <div class="section" id="sec6">
+        <div class="sec-header">
+          <div class="sec-num">06 · Sostenibilidad</div>
+          <h2>Huella de carbono</h2>
+          <p>Indicadores de CO₂ del desplazamiento diario y potencial de ahorro.</p>
+        </div>
+        <div class="grid-3" style="margin-bottom:16px" id="gaugeRow"></div>
         <div class="grid-2">
-          <div class="card"><div class="card-h"><h3 data-i18n="co2ModeTitle">Emisiones CO₂ por Modo</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chCO2"></canvas></div></div></div>
-          <div class="card"><div class="card-h"><h3 data-i18n="co2SaveTitle">Ahorro Potencial de CO₂</h3></div><div class="card-b"><div class="chart-wrap"><canvas id="chCO2Save"></canvas></div></div></div>
+          <div class="card"><div class="card-title">Emisiones CO₂ por modo</div><div class="chart-wrap"><canvas id="chCO2"></canvas></div></div>
+          <div class="card"><div class="card-title">Ahorro potencial de CO₂</div><div class="chart-wrap"><canvas id="chCO2Save"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- SEC 7: MI RUTA -->
+      <div class="section" id="sec7">
+        <div class="sec-header">
+          <div class="sec-num">07 · Mi Ruta</div>
+          <h2>Encuentra tu ruta alternativa</h2>
+          <p>Introduce tu dirección o haz clic en el mapa para comparar modos de transporte hasta Atxuri.</p>
+        </div>
+        <div class="route-layout">
+          <div class="route-map-wrap">
+            <div id="routeMapDiv"></div>
+          </div>
+          <div class="route-panel">
+            <div class="route-search">
+              <input type="text" id="routeAddress" placeholder="Tu dirección de origen…" onkeydown="if(event.key==='Enter')searchRoute()">
+              <button onclick="searchRoute()">Buscar</button>
+            </div>
+            <div class="route-hint">o haz clic en el mapa para marcar el origen</div>
+            <div id="routeResults">
+              <div style="text-align:center;padding:40px 0;color:#9ca3af;font-size:13px">Introduce una dirección o haz clic en el mapa para comenzar</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -274,9 +433,29 @@
 var SURVEY_URL = 'https://services5.arcgis.com/CQghJ1IcnV6WlQrf/arcgis/rest/services/survey123_6d1f21f795284289a610d349e105a076/FeatureServer/0';
 var OD_URL = 'https://services5.arcgis.com/CQghJ1IcnV6WlQrf/arcgis/rest/services/Lineas_OD_Atxuri_PMCT/FeatureServer/0';
 var DEST = { x: -2.9197, y: 43.2589 };
-
-// CO2 emission factors (g CO2/km)
+var GEOCODE_URL = 'https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer';
+var ROUTE_URL = 'https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World';
 var CO2_FACTORS = { 'Coche (yo solo)': 170, 'Coche (Compartido)': 85, 'Moto': 90, 'Autobús': 68, 'Tren o Metro o Tranvía': 30, 'Bicicleta': 0, 'Andando': 0 };
+var ROUTE_CO2 = { car: 170, walk: 0, bike: 0, transit: 30 };
+var ROUTE_SPEEDS = { walk: 5, bike: 15, transit: 25 };
+// Safe emoji definitions (avoids encoding issues)
+var E = {
+  car: String.fromCodePoint(0x1F697),
+  bus: String.fromCodePoint(0x1F68C),
+  moto: String.fromCodePoint(0x1F3CD)+String.fromCodePoint(0xFE0F),
+  bike: String.fromCodePoint(0x1F6B2),
+  walk: String.fromCodePoint(0x1F6B6),
+  train: String.fromCodePoint(0x1F683),
+  arrow: String.fromCodePoint(0x2192),
+  carpool: String.fromCodePoint(0x1F697)+String.fromCodePoint(0x1F697)
+};
+var ROUTE_COLORS = {
+  car: [239,68,68,200],
+  walk: [16,185,129,200],
+  bike: [59,130,246,200],
+  transit: [245,158,11,200]
+};
+var routeGeometries = {};
 
 // ============================
 // i18n
@@ -284,86 +463,96 @@ var CO2_FACTORS = { 'Coche (yo solo)': 170, 'Coche (Compartido)': 85, 'Moto': 90
 var lang = 'es';
 var I18N = {
   es: {
-    appTitle: 'Plan de Movilidad al Centro de Trabajo',
-    appSubtitle: 'Euskotren — Sede Atxuri, Bilbao',
-    langBtn: '🌐 Euskara',
-    mapTitle: 'Mapa de Origen-Destino', mapTag: 'Líneas OD + Residencias',
-    odTableTitle: 'Matriz Origen-Destino → Estación Atxuri',
-    thMuni:'Municipio',thTime:'Tiempo',thDist:'Distancia',thWorkers:'Trabajadores',thBand:'Franja',thProp:'Proporción',
-    modeTitle:'Modo de Transporte', schedTitle:'Hora de Llegada', ageTitle:'Edad', genderTitle:'Género',
-    bandTitle:'Franjas de Tiempo OD', motorTitle:'Tipo de Motor (conductores de coche)',
-    gapTitle:'Modo Actual vs. Preferencia', gapTag:'Oportunidades de intervención',
-    gapActual:'Modo actual', gapPref:'Preferencia',
-    insightTitle:'Insights Clave', opportunityTitle:'Oportunidades de Cambio Modal',
-    simTitle:'Simulador What-If de Cambio Modal', simTag:'Ajusta los escenarios',
-    susTitle:'Indicadores de Sostenibilidad', susTag:'Huella de CO₂',
-    co2ModeTitle:'Emisiones CO₂ por Modo', co2SaveTitle:'Ahorro Potencial de CO₂',
-    kpi1:'Encuestas', kpi2:'Viven a < 15 min', kpi3:'Coche solo', kpi4:'Tiempo medio OD', kpi5:'Transporte público',
-    leg15:'< 15 min', leg30:'15-30 min', leg45:'30-45 min', leg60:'> 45 min', legRes:'Residencias', legDest:'Destino Atxuri',
-    simCoche:'% conductores solos → TP', simMoto:'% motos → bicicleta', simCompartir:'% solos → compartido',
-    simCO2:'Reducción CO₂', simCoches:'Menos coches/día', simTP:'Más usuarios TP',
-    susActual:'CO₂ Actual (kg/día)', susPref:'CO₂ si preferencia', susAhorro:'Ahorro potencial',
-    insText:'<b>48%</b> de los trabajadores prefieren transporte público, pero solo el <b>33%</b> lo usa. Existe una demanda insatisfecha de <b>12 personas</b> que podrían cambiar al tren/metro con mejoras en frecuencia y cobertura.<br><br><b>18%</b> prefieren ir andando, pero solo el <b>11%</b> lo hace. La mayoría vive en Bilbao (< 15 min), lo que sugiere que mejoras en la seguridad peatonal o incentivos podrían facilitar el cambio.<br><br>El <b>35%</b> conduce solo, pero solo el <b>18%</b> lo prefiere. Es el mayor potencial de cambio modal del PMCT.'
+    overline:'Plan de Movilidad al Centro de Trabajo', title:'Euskotren · Sede Atxuri', sub:'Cuaderno ejecutivo · 2026',
+    sec1n:'01 · Visión General',sec1h:'Una mirada al desplazamiento diario',sec1p:'Estos son los pulsos que mueven el plan.',
+    sec2n:'02 · Mapa OD',sec2h:'Origen-Destino en el territorio',sec2p:'Líneas OD y residencias de los trabajadores sobre el mapa.',
+    sec3n:'03 · Demografía',sec3h:'Quién compone la plantilla',sec3p:'Distribución del modo de transporte habitual, hora de llegada, edad, género y tipo de motor.',
+    sec4n:'04 · Brecha Modal',sec4h:'Lo que hacen vs. lo que querrían hacer',sec4p:'La brecha entre modo actual y modo preferido marca dónde existe demanda latente.',
+    sec5n:'05 · Simulador',sec5h:'Simulador What-If',sec5p:'Mueve los deslizadores para reasignar viajes a modos más sostenibles.',
+    sec6n:'06 · Sostenibilidad',sec6h:'Huella de carbono',sec6p:'Indicadores de CO₂ del desplazamiento diario y potencial de ahorro.',
+    nav1:'Visión general',nav2:'Mapa OD',nav3:'Demografía',nav4:'Brecha modal',nav5:'Simulador',nav6:'Sostenibilidad',
+    kpi1:'Respuestas',kpi1s:'municipios',kpi2:'A menos de 15 min',kpi3:'Tiempo medio de viaje',kpi4:'Conducen en solitario',kpi5:'Usan transporte público',kpi6:'Kg CO₂ / día',
+    leg15:'< 15 min',leg30:'15-30 min',leg45:'30-45 min',leg60:'> 45 min',legRes:'Residencias',legDest:'Destino Atxuri',
+    ins1:'12 personas que hoy van solas en coche cambiarían a transporte público con mejor frecuencia y cobertura.',
+    ins2:'Andando aparece como preferencia para casi 1 de cada 5: la mayoría vive a menos de 15 min de Atxuri.',
+    ins3:'El coche solitario tiene la mayor brecha negativa: 17 puntos entre quienes lo usan y quienes lo prefieren.',
+    simL1:'% de coche en solitario → transporte público',simL2:'% de moto → bicicleta',simL3:'% de coche en solitario → compartido',
+    impCO2:'Kg CO₂ / día',impCars:'Menos coches al día',impTP:'Nuevos usuarios TP',
+    susActual:'CO₂ Actual (kg/día)',susPref:'CO₂ si preferencia',susAhorro:'Ahorro potencial',
+    nav7:'Mi ruta',rtCar:'Coche',rtWalk:'A pie',rtBike:'Bicicleta',rtTransit:'Transporte público',
+    rtSearching:'Calculando rutas…',rtNotFound:'Dirección no encontrada. Intenta de nuevo.',
+    rtSummary:'Comparativa de impacto',rtCO2day:'g CO₂/viaje',rtSaving:'Ahorro vs. coche',rtTime:'min',rtDist:'km'
   },
   eu: {
-    appTitle: 'Lan-Zentrorako Mugikortasun Plana',
-    appSubtitle: 'Euskotren — Atxuri Egoitza, Bilbo',
-    langBtn: '🌐 Español',
-    mapTitle: 'Jatorri-Helmuga Mapa', mapTag: 'OD Lerroak + Bizilekuak',
-    odTableTitle: 'Jatorri-Helmuga Matrizea → Atxuri Geltokia',
-    thMuni:'Udalerria',thTime:'Denbora',thDist:'Distantzia',thWorkers:'Langileak',thBand:'Tartea',thProp:'Proportzioa',
-    modeTitle:'Garraio Modua', schedTitle:'Iritsi Ordua', ageTitle:'Adina', genderTitle:'Generoa',
-    bandTitle:'OD Denbora Tarteak', motorTitle:'Motor Mota (autoz doazenak)',
-    gapTitle:'Egungo Modua vs. Lehentasuna', gapTag:'Esku-hartze aukerak',
-    gapActual:'Egungo modua', gapPref:'Lehentasuna',
-    insightTitle:'Funtsezko Ikuspegiak', opportunityTitle:'Aldaketa Modal Aukerak',
-    simTitle:'What-If Simuladorea', simTag:'Egokitu eszenatokiak',
-    susTitle:'Jasangarritasun Adierazleak', susTag:'CO₂ Aztarna',
-    co2ModeTitle:'CO₂ Isurketak Moduaren Arabera', co2SaveTitle:'CO₂ Aurrezpen Potentziala',
-    kpi1:'Inkestak', kpi2:'< 15 min-ra bizi', kpi3:'Auto bakarrik', kpi4:'Batez besteko OD', kpi5:'Garraio publikoa',
-    leg15:'< 15 min', leg30:'15-30 min', leg45:'30-45 min', leg60:'> 45 min', legRes:'Bizilekuak', legDest:'Atxuri Helmuga',
-    simCoche:'% bakarrik → GP', simMoto:'% moto → bizikleta', simCompartir:'% bakarrik → partekatua',
-    simCO2:'CO₂ Murrizketa', simCoches:'Auto gutxiago/egun', simTP:'GP erabiltzaile gehiago',
-    susActual:'Egungo CO₂ (kg/egun)', susPref:'CO₂ lehentasunarekin', susAhorro:'Aurrezpen potentziala',
-    insText:'Langileen <b>%48</b>k garraio publikoa nahiago du, baina <b>%33</b>k bakarrik erabiltzen du. <b>12 pertsonako</b> eskari asegabea dago, maiztasuna eta estaldura hobetuz trena/metrora alda litezkeenak.<br><br><b>%18</b>k oinez joan nahi du, baina <b>%11</b>k bakarrik egiten du. Gehienak Bilbon bizi dira (< 15 min), eta oinezko segurtasun hobekuntzek edo pizgarriek aldaketa erraztu dezaketela iradokitzen du.<br><br><b>%35</b>ek bakarrik gidatzen du, baina <b>%18</b>k bakarrik nahiago du. Hau da PMCTaren aldaketa modal potentzialik handiena.'
+    overline:'Lan-Zentrorako Mugikortasun Plana', title:'Euskotren · Atxuri Egoitza', sub:'Koaderno exekutiboa · 2026',
+    sec1n:'01 · Ikuspegi Orokorra',sec1h:'Eguneroko mugikortasunari begirada',sec1p:'Hauek dira plana mugitzen duten pultsoak.',
+    sec2n:'02 · OD Mapa',sec2h:'Jatorri-Helmuga lurraldean',sec2p:'OD lerroak eta langileen bizilekuak mapan.',
+    sec3n:'03 · Demografia',sec3h:'Nork osatzen du plantilla',sec3p:'Ohiko garraio-moduaren, iritsi-orduaren, adinaren, generoaren eta motor motaren banaketa.',
+    sec4n:'04 · Brecha Modala',sec4h:'Zer egiten duten vs. zer nahiko luketen',sec4p:'Egungo moduaren eta nahiago dutenaren arteko brecha eskaera gordea non dagoen erakusten du.',
+    sec5n:'05 · Simuladorea',sec5h:'What-If Simuladorea',sec5p:'Mugitu irristagarriak bidaiak modu jasangarriagoetara birbideratzeko.',
+    sec6n:'06 · Jasangarritasuna',sec6h:'Karbono aztarna',sec6p:'Eguneroko mugikortasunaren CO₂ adierazleak eta aurrezpen potentziala.',
+    nav1:'Ikuspegi orokorra',nav2:'OD Mapa',nav3:'Demografia',nav4:'Brecha modala',nav5:'Simuladorea',nav6:'Jasangarritasuna',
+    kpi1:'Erantzunak',kpi1s:'udalerriak',kpi2:'15 min baino gutxiagora',kpi3:'Batez besteko bidaia-denbora',kpi4:'Bakarrik gidatzen dute',kpi5:'Garraio publikoa erabiltzen dute',kpi6:'Kg CO₂ / egun',
+    leg15:'< 15 min',leg30:'15-30 min',leg45:'30-45 min',leg60:'> 45 min',legRes:'Bizilekuak',legDest:'Atxuri Helmuga',
+    ins1:'Gaur egun bakarrik autoz doazen 12 pertsonak garraio publikora aldatuko lirateke maiztasuna eta estaldura hobetuz.',
+    ins2:'Oinez lehentasun gisa agertzen da ia 5etik 1entzat: gehienak Atxuritik 15 min baino gutxiagora bizi dira.',
+    ins3:'Auto bakarrak brecha negatiborik handiena du: 17 puntu erabiltzen dutenen eta nahiago dutenen artean.',
+    simL1:'% auto bakarrik → garraio publikoa',simL2:'% moto → bizikleta',simL3:'% auto bakarrik → partekatua',
+    impCO2:'Kg CO₂ / egun',impCars:'Auto gutxiago egunean',impTP:'GP erabiltzaile berriak',
+    susActual:'Egungo CO₂ (kg/egun)',susPref:'CO₂ lehentasunarekin',susAhorro:'Aurrezpen potentziala',
+    nav7:'Nire ibilbidea',rtCar:'Autoa',rtWalk:'Oinez',rtBike:'Bizikleta',rtTransit:'Garraio publikoa',
+    rtSearching:'Ibilbideak kalkulatzen…',rtNotFound:'Helbidea ez da aurkitu. Saiatu berriro.',
+    rtSummary:'Inpaktuaren konparaketa',rtCO2day:'g CO₂/bidaia',rtSaving:'Aurreztea vs. autoa',rtTime:'min',rtDist:'km'
   }
 };
 
-function toggleLang() {
-  lang = lang === 'es' ? 'eu' : 'es';
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (I18N[lang][key]) el.innerHTML = I18N[lang][key];
+// Set today's date
+var now = new Date();
+var dayNames = {es:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],eu:['Ig','Al','Ar','Az','Og','Or','La']};
+var monthNames = {es:['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],eu:['urt','ots','mar','api','mai','eka','uzt','abu','ira','urr','aza','abe']};
+
+function updateDateStr() {
+  var d = dayNames[lang]; var m = monthNames[lang];
+  document.getElementById('dateStr').textContent = d[now.getDay()] + ' ' + now.getDate() + ' ' + m[now.getMonth()];
+}
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('langEs').className = 'lang-pill' + (l==='es'?' active':'');
+  document.getElementById('langEu').className = 'lang-pill' + (l==='eu'?' active':'');
+  var t = I18N[l];
+  document.getElementById('appOverline').textContent = t.overline;
+  document.getElementById('appTitle').textContent = t.title;
+  document.getElementById('appSubtitle').textContent = t.sub;
+  // Update section headers
+  document.querySelectorAll('.sec-num').forEach(function(el,i){ var k='sec'+(i+1)+'n'; if(t[k]) el.textContent=t[k]; });
+  document.querySelectorAll('.sec-header h2').forEach(function(el,i){ var k='sec'+(i+1)+'h'; if(t[k]) el.textContent=t[k]; });
+  document.querySelectorAll('.sec-header p').forEach(function(el,i){ var k='sec'+(i+1)+'p'; if(t[k]) el.textContent=t[k]; });
+  // Update nav buttons
+  document.querySelectorAll('.nav-btn').forEach(function(el,i){
+    var spans = el.childNodes; var k='nav'+(i+1); if(t[k]) spans[spans.length-1].textContent = '\n        '+t[k]+'\n      ';
   });
-  document.getElementById('appTitle').textContent = I18N[lang].appTitle;
-  document.getElementById('appSubtitle').textContent = I18N[lang].appSubtitle;
-  document.getElementById('langBtn').textContent = I18N[lang].langBtn;
-  // Update KPIs
-  document.querySelectorAll('.kpi .lbl[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (I18N[lang][key]) el.textContent = I18N[lang][key];
-  });
-  document.getElementById('insightsBox').innerHTML = I18N[lang].insText;
-};
+  updateDateStr();
+  if (surveyData.length > 0) { renderKPIs(); renderGapAnalysis(); renderSimulator(); renderSustainability(); }
+}
+
+function toggleLang() { setLang(lang === 'es' ? 'eu' : 'es'); }
 
 // ============================
 // NAV
 // ============================
 function showSection(id, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
-};
+}
 
 // ============================
 // OAUTH CONFIG
 // ============================
-// ⚠️  CONFIGURA AQUÍ tu Client ID de ArcGIS Online
-//     (Registra una app en: tu-org.maps.arcgis.com → Content → My Content → New Item → Application)
-//     El Redirect URI debe ser la URL donde se hospeda esta página (ej: https://tu-user.github.io/pmct-atxuri/)
 var APP_ID = 'eN2ikRbdHVixfIsn';
-var PORTAL_URL = 'https://www.arcgis.com';
+var PORTAL_URL = 'https://traninfralog.maps.arcgis.com';
 
 // ============================
 // AUTH STATE
@@ -371,9 +560,10 @@ var PORTAL_URL = 'https://www.arcgis.com';
 var TOKEN = '';
 var surveyData = [], odData = [];
 var _esriId = null;
+var _Portal = null;
 
 // ============================
-// OAUTH INIT (runs on page load)
+// OAUTH INIT
 // ============================
 require([
   "esri/identity/OAuthInfo",
@@ -381,372 +571,240 @@ require([
   "esri/portal/Portal"
 ], function(OAuthInfo, esriId, Portal) {
   _esriId = esriId;
-  console.log('[PMCT] OAuth modules loaded');
+  _Portal = Portal;
 
-  var oAuthInfo = new OAuthInfo({
-    appId: APP_ID,
-    portalUrl: PORTAL_URL,
-    popup: false  // redirect-based login (best for GitHub Pages)
-  });
-  esriId.registerOAuthInfos([oAuthInfo]);
+  var isEmbedded = (window !== window.parent);
+  var urlParams = new URLSearchParams(window.location.search);
+  var urlToken = urlParams.get('token');
 
-  // Check if user is already signed in (e.g. returning from OAuth redirect)
-  esriId.checkSignInStatus(PORTAL_URL + '/sharing')
-    .then(function(credential) {
-      console.log('[PMCT] Already signed in, token length:', credential.token.length);
-      onSignedIn(credential);
-    })
-    .catch(function() {
-      console.log('[PMCT] Not signed in — showing login screen');
-      // Login screen is already visible by default
-    });
-
-  // After sign in, get user info and load data
-  function onSignedIn(credential) {
-    TOKEN = credential.token;
-
-    // Show user name in header
-    var portal = new Portal({ url: PORTAL_URL });
-    portal.authMode = 'immediate';
-    portal.load().then(function() {
-      var name = portal.user ? portal.user.fullName : credential.userId;
-      document.getElementById('userName').textContent = name;
-      console.log('[PMCT] Signed in as:', name);
-    }).catch(function() {
-      document.getElementById('userName').textContent = credential.userId;
-    });
-
-    // Hide login, show app
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appShell').style.display = 'flex';
-
-    // Load data
-    loadAppData();
+  if (urlToken) {
+    TOKEN = urlToken;
+    var servers = [PORTAL_URL+'/sharing/rest','https://services5.arcgis.com/CQghJ1IcnV6WlQrf/arcgis/rest/services','https://basemaps-api.arcgis.com','https://basemapstyles-api.arcgis.com'];
+    servers.forEach(function(s){ esriId.registerToken({server:s,token:TOKEN}); });
+    showApp('(Token URL)');
+    return;
   }
 
-  // Expose onSignedIn for doLogin
-  window._onSignedIn = onSignedIn;
+  var oAuthInfo = new OAuthInfo({ appId:APP_ID, portalUrl:PORTAL_URL, flowType:'implicit', popup:isEmbedded });
+  esriId.registerOAuthInfos([oAuthInfo]);
 
-}, function(err) {
-  console.error('[PMCT] Failed to load OAuth modules:', err);
+  esriId.checkSignInStatus(PORTAL_URL+'/sharing')
+    .then(function(cred){ TOKEN=cred.token; showApp(cred.userId); })
+    .catch(function(){});
 });
 
-// ============================
-// LOGIN / LOGOUT
-// ============================
+function showApp(userId) {
+  if (_Portal) {
+    var portal = new _Portal({url:PORTAL_URL}); portal.authMode='immediate';
+    portal.load().then(function(){ document.getElementById('userName').textContent = portal.user?portal.user.fullName:userId; })
+    .catch(function(){ document.getElementById('userName').textContent = userId||''; });
+  }
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appShell').style.display='flex';
+  updateDateStr();
+  loadAppData();
+}
+
 function doLogin() {
-  document.getElementById('loginActions').style.display = 'none';
-  document.getElementById('loginLoading').style.display = 'flex';
-  // Trigger OAuth redirect
-  require(["esri/identity/IdentityManager"], function(esriId) {
-    esriId.getCredential(PORTAL_URL + '/sharing')
-      .then(function(credential) {
-        window._onSignedIn(credential);
-      })
-      .catch(function(err) {
-        console.error('[PMCT] Login failed:', err);
-        document.getElementById('loginActions').style.display = 'block';
-        document.getElementById('loginLoading').style.display = 'none';
-      });
-  });
+  document.getElementById('loginActions').style.display='none';
+  document.getElementById('loginLoading').style.display='flex';
+  _esriId.getCredential(PORTAL_URL+'/sharing')
+    .then(function(cred){ TOKEN=cred.token; showApp(cred.userId); })
+    .catch(function(){ document.getElementById('loginActions').style.display='block'; document.getElementById('loginLoading').style.display='none'; });
 }
 
-function doLogout() {
-  require(["esri/identity/IdentityManager"], function(esriId) {
-    esriId.destroyCredentials();
-    // Clear session and reload
-    window.location.reload();
-  });
-}
+function doLogout() { _esriId.destroyCredentials(); window.location.reload(); }
 
 // ============================
-// LOAD DATA (after auth)
+// LOAD DATA
 // ============================
 function loadAppData() {
-  console.log('[PMCT] Loading data with token...');
   Promise.all([fetchSurvey(), fetchOD()]).then(function() {
-    console.log('[PMCT] Survey records:', surveyData.length, '| OD records:', odData.length);
-    renderKPIs();
-    renderMap();
-    renderODTable();
-    renderCharts();
-    renderGapAnalysis();
-    renderSimulator();
-    renderSustainability();
-    document.getElementById('insightsBox').innerHTML = I18N[lang].insText;
-    console.log('[PMCT] App loaded successfully');
-  }).catch(function(err) {
-    console.error('[PMCT] Error loading data:', err);
-    alert('Error cargando datos: ' + err.message);
-  });
+    console.log('[PMCT] Survey:', surveyData.length, '| OD:', odData.length);
+    document.getElementById('totalResp').textContent = surveyData.length;
+    renderKPIs(); renderMap(); renderODTable(); renderCharts(); renderGapAnalysis(); renderSimulator(); renderSustainability();
+  }).catch(function(err){ console.error('[PMCT] Error:', err); alert('Error cargando datos: '+err.message); });
 }
 
 function fetchSurvey() {
-  var params = new URLSearchParams({ where:'1=1', outFields:'*', outSR:'4326', f:'json', token: TOKEN, resultRecordCount: '200' });
-  return fetch(SURVEY_URL + '/query', { method:'POST', body: params })
-    .then(function(resp) { return resp.json(); })
-    .then(function(data) {
-      if (data.error) { console.error('[PMCT] Survey API error:', data.error); }
-      console.log('[PMCT] Survey features:', (data.features || []).length);
-      surveyData = (data.features || []).map(function(f) {
-        return Object.assign({}, f.attributes, { _x: f.geometry ? f.geometry.x : null, _y: f.geometry ? f.geometry.y : null });
-      });
-    });
+  var params = new URLSearchParams({where:'1=1',outFields:'*',outSR:'4326',f:'json',token:TOKEN,resultRecordCount:'200'});
+  return fetch(SURVEY_URL+'/query',{method:'POST',body:params}).then(function(r){return r.json();}).then(function(d){
+    if(d.error) console.error('[PMCT] Survey error:',d.error);
+    surveyData=(d.features||[]).map(function(f){return Object.assign({},f.attributes,{_x:f.geometry?f.geometry.x:null,_y:f.geometry?f.geometry.y:null});});
+  });
 }
 
 function fetchOD() {
-  var params = new URLSearchParams({ where:'1=1', outFields:'*', f:'json', token: TOKEN });
-  return fetch(OD_URL + '/query', { method:'POST', body: params })
-    .then(function(resp) { return resp.json(); })
-    .then(function(data) {
-      if (data.error) { console.error('[PMCT] OD API error:', data.error); }
-      console.log('[PMCT] OD features:', (data.features || []).length);
-      odData = (data.features || []).map(function(f) { return f.attributes; });
-    });
+  var params = new URLSearchParams({where:'1=1',outFields:'*',f:'json',token:TOKEN});
+  return fetch(OD_URL+'/query',{method:'POST',body:params}).then(function(r){return r.json();}).then(function(d){
+    if(d.error) console.error('[PMCT] OD error:',d.error);
+    odData=(d.features||[]).map(function(f){return f.attributes;});
+  });
 }
 
 // ============================
 // HELPERS
 // ============================
-function countBy(arr, key) {
-  const c = {}; arr.forEach(r => { const v = r[key] || 'N/D'; c[v] = (c[v]||0)+1; }); return c;
-}
-function fc(m) {
-  if (m<=15) return {bg:'#10b981',cls:'bg-green',lb:'< 15 min'};
-  if (m<=30) return {bg:'#f59e0b',cls:'bg-yellow',lb:'15-30 min'};
-  if (m<=45) return {bg:'#f97316',cls:'bg-orange',lb:'30-45 min'};
-  return {bg:'#ef4444',cls:'bg-red',lb:'> 45 min'};
-}
+function countBy(arr,key){var c={};arr.forEach(function(r){var v=r[key]||'N/D';c[v]=(c[v]||0)+1;});return c;}
+function fc(m){if(m<=15)return{bg:'#10b981',cls:'bg-green',lb:'< 15 min'};if(m<=30)return{bg:'#f59e0b',cls:'bg-yellow',lb:'15-30 min'};if(m<=45)return{bg:'#f97316',cls:'bg-orange',lb:'30-45 min'};return{bg:'#ef4444',cls:'bg-red',lb:'> 45 min'};}
 
 // ============================
 // KPIs
 // ============================
 function renderKPIs() {
-  const total = surveyData.length;
-  const cocheSolo = surveyData.filter(s => s._c_mo_te_desplazas_habitualment === 'Coche (yo solo)').length;
-  const tp = surveyData.filter(s => ['Tren o Metro o Tranvía','Autobús'].includes(s._c_mo_te_desplazas_habitualment)).length;
-  const w15 = odData.filter(o => o.tiempo_min <= 15).reduce((s,o) => s + (o.num_trabajadores||0), 0);
-  const totalW = odData.reduce((s,o) => s + (o.num_trabajadores||0), 0);
-  const avgTime = (odData.reduce((s,o) => s + o.tiempo_min * (o.num_trabajadores||1), 0) / totalW).toFixed(1);
+  var t=I18N[lang], total=surveyData.length;
+  var cocheSolo=surveyData.filter(function(s){return s._c_mo_te_desplazas_habitualment==='Coche (yo solo)';}).length;
+  var tp=surveyData.filter(function(s){return ['Tren o Metro o Tranvía','Autobús'].indexOf(s._c_mo_te_desplazas_habitualment)>=0;}).length;
+  var totalW=odData.reduce(function(s,o){return s+(o.num_trabajadores||0);},0);
+  var w15=odData.filter(function(o){return o.tiempo_min<=15;}).reduce(function(s,o){return s+(o.num_trabajadores||0);},0);
+  var avgTime=(odData.reduce(function(s,o){return s+o.tiempo_min*(o.num_trabajadores||1);},0)/totalW).toFixed(1);
+  var nMunis=odData.length;
+  // CO2 per person average
+  var avgKm=odData.reduce(function(s,o){return s+o.distancia_km*(o.num_trabajadores||0);},0)/totalW;
+  var co2pp=0; surveyData.forEach(function(s){var ef=CO2_FACTORS[s._c_mo_te_desplazas_habitualment]||100;co2pp+=ef*avgKm*2/1000;});
+  var co2avg=(co2pp/total).toFixed(1);
 
-  document.getElementById('kpiRow').innerHTML = `
-    <div class="kpi"><div class="val">${total}</div><div class="lbl" data-i18n="kpi1">${I18N[lang].kpi1}</div></div>
-    <div class="kpi green"><div class="val">${Math.round(w15/totalW*100)}%</div><div class="lbl" data-i18n="kpi2">${I18N[lang].kpi2}</div></div>
-    <div class="kpi yellow"><div class="val">${Math.round(cocheSolo/total*100)}%</div><div class="lbl" data-i18n="kpi3">${I18N[lang].kpi3}</div></div>
-    <div class="kpi orange"><div class="val">${avgTime} min</div><div class="lbl" data-i18n="kpi4">${I18N[lang].kpi4}</div></div>
-    <div class="kpi red"><div class="val">${Math.round(tp/total*100)}%</div><div class="lbl" data-i18n="kpi5">${I18N[lang].kpi5}</div></div>
-  `;
+  document.getElementById('kpiRow').innerHTML =
+    '<div class="kpi tint-neutral"><div class="val dark">'+total+'</div><div class="lbl">'+t.kpi1+'</div><div class="sub-lbl">'+nMunis+' '+t.kpi1s+'</div></div>'+
+    '<div class="kpi tint-green"><div class="val green">'+Math.round(w15/totalW*100)+'%</div><div class="lbl">'+t.kpi2+'</div></div>'+
+    '<div class="kpi tint-neutral"><div class="val dark">'+avgTime+'\'</div><div class="lbl">'+t.kpi3+'</div></div>'+
+    '<div class="kpi tint-red"><div class="val red">'+Math.round(cocheSolo/total*100)+'%</div><div class="lbl">'+t.kpi4+'</div></div>'+
+    '<div class="kpi tint-green"><div class="val green">'+Math.round(tp/total*100)+'%</div><div class="lbl">'+t.kpi5+'</div></div>'+
+    '<div class="kpi tint-neutral"><div class="val dark">'+co2avg+'</div><div class="lbl">'+t.kpi6+'</div></div>';
 }
 
 // ============================
-// MAP (ArcGIS JS API 4.31)
+// MAP
 // ============================
 function renderMap() {
-  require([
-    "esri/Map","esri/views/MapView",
-    "esri/layers/FeatureLayer","esri/layers/GraphicsLayer",
-    "esri/Graphic","esri/symbols/SimpleLineSymbol",
-    "esri/symbols/SimpleMarkerSymbol","esri/renderers/SimpleRenderer",
-    "esri/renderers/UniqueValueRenderer","esri/PopupTemplate",
-    "esri/geometry/Point"
-  ], function(Map, MapView, FeatureLayer, GraphicsLayer, Graphic, SimpleLineSymbol, SimpleMarkerSymbol, SimpleRenderer, UniqueValueRenderer, PopupTemplate, Point) {
-
-    var map = new Map({ basemap: "gray-vector" });
-    var view = new MapView({
-      container: "mapViewDiv", map: map, center: [-2.88, 43.22], zoom: 10,
-      ui: { components: ["zoom"] },
-      popup: { dockEnabled: true, dockOptions: { position: "bottom-right", breakpoint: false } }
-    });
-
-    // OD Lines FeatureLayer (live)
-    var odLayer = new FeatureLayer({
-      url: OD_URL, title: "Líneas OD",
-      renderer: new UniqueValueRenderer({
-        field: "franja",
-        uniqueValueInfos: [
-          { value: "< 15 min", symbol: new SimpleLineSymbol({ color: "#10b981", width: 2.5 }), label: "< 15 min" },
-          { value: "15-30 min", symbol: new SimpleLineSymbol({ color: "#f59e0b", width: 2 }), label: "15-30 min" },
-          { value: "30-45 min", symbol: new SimpleLineSymbol({ color: "#f97316", width: 1.5 }), label: "30-45 min" },
-          { value: "> 45 min", symbol: new SimpleLineSymbol({ color: "#ef4444", width: 1.5 }), label: "> 45 min" }
-        ]
-      }),
-      popupTemplate: new PopupTemplate({
-        title: "{municipio_origen} → Atxuri",
-        content: "<b>{tiempo_min} min</b> · {distancia_km} km<br>{num_trabajadores} trabajador(es)"
-      })
-    });
-
-    // Survey points FeatureLayer (live)
-    var surveyLayer = new FeatureLayer({
-      url: SURVEY_URL, title: "Residencias",
-      renderer: new SimpleRenderer({
-        symbol: new SimpleMarkerSymbol({ color: [26,115,232,160], outline: { color: "#fff", width: 1 }, size: 7 })
-      }),
-      popupTemplate: new PopupTemplate({
-        title: "{_d_nde_vives_en_qu_municipio_ex}",
-        content: "<b>Modo:</b> {_c_mo_te_desplazas_habitualment}<br><b>Edad:</b> {edad}<br><b>Género:</b> {g_nero}"
-      })
-    });
-
-    // Destination marker
-    var destLayer = new GraphicsLayer({ title: "Destino" });
-    destLayer.add(new Graphic({
-      geometry: new Point({ longitude: DEST.x, latitude: DEST.y }),
-      symbol: new SimpleMarkerSymbol({ color: "#dc2626", outline: { color: "#fff", width: 2 }, size: 14, style: "diamond" }),
-      popupTemplate: new PopupTemplate({ title: "Estación Atxuri", content: "Sede Euskotren — Bilbao" })
-    }));
-
-    map.addMany([odLayer, surveyLayer, destLayer]);
-
-  // Custom legend
-  document.getElementById('mapLegend').innerHTML = `
-    <div class="ml-item"><div class="ml-line" style="background:#10b981"></div> ${I18N[lang].leg15}</div>
-    <div class="ml-item"><div class="ml-line" style="background:#f59e0b"></div> ${I18N[lang].leg30}</div>
-    <div class="ml-item"><div class="ml-line" style="background:#f97316"></div> ${I18N[lang].leg45}</div>
-    <div class="ml-item"><div class="ml-line" style="background:#ef4444"></div> ${I18N[lang].leg60}</div>
-    <div class="ml-item"><div class="ml-dot" style="background:rgba(26,115,232,.7)"></div> ${I18N[lang].legRes}</div>
-    <div class="ml-item"><div class="ml-dot" style="background:#dc2626"></div> ${I18N[lang].legDest}</div>
-  `;
-  }); // end require
+  require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/symbols/SimpleLineSymbol","esri/symbols/SimpleMarkerSymbol","esri/renderers/SimpleRenderer","esri/renderers/UniqueValueRenderer","esri/PopupTemplate","esri/geometry/Point"],
+  function(Map,MapView,FeatureLayer,GraphicsLayer,Graphic,SimpleLineSymbol,SimpleMarkerSymbol,SimpleRenderer,UniqueValueRenderer,PopupTemplate,Point){
+    var map=new Map({basemap:"gray-vector"});
+    var view=new MapView({container:"mapViewDiv",map:map,center:[-2.88,43.22],zoom:10,ui:{components:["zoom"]},popup:{dockEnabled:true,dockOptions:{position:"bottom-right",breakpoint:false}}});
+    var odLayer=new FeatureLayer({url:OD_URL,title:"Líneas OD",renderer:new UniqueValueRenderer({field:"franja",uniqueValueInfos:[
+      {value:"< 15 min",symbol:new SimpleLineSymbol({color:"#10b981",width:2.5}),label:"< 15 min"},
+      {value:"15-30 min",symbol:new SimpleLineSymbol({color:"#f59e0b",width:2}),label:"15-30 min"},
+      {value:"30-45 min",symbol:new SimpleLineSymbol({color:"#f97316",width:1.5}),label:"30-45 min"},
+      {value:"> 45 min",symbol:new SimpleLineSymbol({color:"#ef4444",width:1.5}),label:"> 45 min"}
+    ]}),popupTemplate:new PopupTemplate({title:"{municipio_origen} → Atxuri",content:"<b>{tiempo_min} min</b> · {distancia_km} km<br>{num_trabajadores} trabajador(es)"})});
+    var surveyLayer=new FeatureLayer({url:SURVEY_URL,title:"Residencias",renderer:new SimpleRenderer({symbol:new SimpleMarkerSymbol({color:[16,185,129,160],outline:{color:"#fff",width:1},size:7})}),popupTemplate:new PopupTemplate({title:"{_d_nde_vives_en_qu_municipio_ex}",content:"<b>Modo:</b> {_c_mo_te_desplazas_habitualment}<br><b>Edad:</b> {edad}"})});
+    var destLayer=new GraphicsLayer({title:"Destino"});
+    destLayer.add(new Graphic({geometry:new Point({longitude:DEST.x,latitude:DEST.y}),symbol:new SimpleMarkerSymbol({color:"#dc2626",outline:{color:"#fff",width:2},size:14,style:"diamond"}),popupTemplate:new PopupTemplate({title:"Estación Atxuri",content:"Sede Euskotren — Bilbao"})}));
+    map.addMany([odLayer,surveyLayer,destLayer]);
+    var t=I18N[lang];
+    document.getElementById('mapLegend').innerHTML='<div class="ml-item"><div class="ml-line" style="background:#10b981"></div>'+t.leg15+'</div><div class="ml-item"><div class="ml-line" style="background:#f59e0b"></div>'+t.leg30+'</div><div class="ml-item"><div class="ml-line" style="background:#f97316"></div>'+t.leg45+'</div><div class="ml-item"><div class="ml-line" style="background:#ef4444"></div>'+t.leg60+'</div><div class="ml-item"><div class="ml-dot" style="background:rgba(16,185,129,.7)"></div>'+t.legRes+'</div><div class="ml-item"><div class="ml-dot" style="background:#dc2626"></div>'+t.legDest+'</div>';
+  });
 }
 
 // ============================
 // OD TABLE
 // ============================
 function renderODTable() {
-  const maxW = Math.max(...odData.map(o => o.num_trabajadores || 1));
-  const totalW = odData.reduce((s,o) => s + (o.num_trabajadores||0), 0);
-  const sorted = [...odData].sort((a,b) => a.tiempo_min - b.tiempo_min);
-  document.getElementById('odTbody').innerHTML = sorted.map(o => {
-    const c = fc(o.tiempo_min);
-    const pct = Math.round((o.num_trabajadores||0)/totalW*100);
-    const bw = Math.round((o.num_trabajadores||0)/maxW*100);
-    return `<tr><td><strong>${o.municipio_origen}</strong></td><td>${o.tiempo_min} min</td><td>${o.distancia_km} km</td><td><div class="bar-cell"><div class="bar-fill" style="width:${bw}%;background:${c.bg}"></div><span>${o.num_trabajadores} (${pct}%)</span></div></td><td><span class="badge ${c.cls}">${c.lb}</span></td><td><div class="bar-cell"><div class="bar-fill" style="width:${bw}%;background:${c.bg}"></div></div></td></tr>`;
-  }).join('');
+  var totalW=odData.reduce(function(s,o){return s+(o.num_trabajadores||0);},0);
+  var nMunis=odData.length;
+  document.getElementById('odBadge').textContent=totalW+' personas · '+nMunis+' municipios';
+  var sorted=odData.slice().sort(function(a,b){return (b.num_trabajadores||0)-(a.num_trabajadores||0);});
+  var labels=sorted.map(function(o){return o.municipio_origen;});
+  var vals=sorted.map(function(o){return o.num_trabajadores||0;});
+  var times=sorted.map(function(o){return o.tiempo_min;});
+  var bgColors=sorted.map(function(o){return fc(o.tiempo_min).bg+'40';});
+  var borderColors=sorted.map(function(o){return fc(o.tiempo_min).bg;});
+  charts.od=new Chart(document.getElementById('chOD'),{type:'bar',data:{labels:labels,datasets:[{data:vals,backgroundColor:bgColors,borderColor:borderColors,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return vals[ctx.dataIndex]+' trab. · '+times[ctx.dataIndex]+'\' min';}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{callback:function(v,i){return labels[i]+'\n'+times[i]+'\'';},maxRotation:45,font:{size:10}}}}}});
 }
 
 // ============================
 // CHARTS
 // ============================
-var COLORS = ['#1a73e8','#ea4335','#fbbc04','#34a853','#ff6d01','#46bdc6','#7b61ff'];
-var charts = {};
+var COLORS=['#10b981','#059669','#34d399','#6ee7b7','#a7f3d0','#d1fae5','#065f46','#047857'];
+var charts={};
 
-function renderCharts() {
-  // Mode
-  const modes = countBy(surveyData, '_c_mo_te_desplazas_habitualment');
-  const mL = Object.entries(modes).sort((a,b)=>b[1]-a[1]);
-  charts.mode = new Chart(document.getElementById('chMode'), { type:'bar', data:{ labels:mL.map(m=>m[0].length>20?m[0].slice(0,18)+'…':m[0]), datasets:[{data:mL.map(m=>m[1]),backgroundColor:COLORS,borderRadius:6,barThickness:26}]}, options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}});
+function renderCharts(){
+  // Mode - horizontal bar with gradient greens
+  var modes=countBy(surveyData,'_c_mo_te_desplazas_habitualment');
+  var mL=Object.entries(modes).sort(function(a,b){return b[1]-a[1];});
+  charts.mode=new Chart(document.getElementById('chMode'),{type:'bar',data:{labels:mL.map(function(m){return m[0].length>22?m[0].slice(0,20)+'…':m[0];}),datasets:[{data:mL.map(function(m){return m[1];}),backgroundColor:COLORS,borderRadius:4,barThickness:22}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
 
   // Hour
-  const hours = {};
-  surveyData.forEach(s => { if(s._a_qu_hora_llegaste_al_trabajo){const h=parseInt(s._a_qu_hora_llegaste_al_trabajo);if(!isNaN(h)){const slot=h.toString().padStart(2,'0')+':00';hours[slot]=(hours[slot]||0)+1;}}});
-  const hL = Object.keys(hours).sort();
-  charts.hour = new Chart(document.getElementById('chHour'), { type:'bar', data:{labels:hL,datasets:[{data:hL.map(h=>hours[h]),backgroundColor:'#1a73e8',borderRadius:6,barThickness:32}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}});
+  var hours={};
+  surveyData.forEach(function(s){if(s._a_qu_hora_llegaste_al_trabajo){var h=parseInt(s._a_qu_hora_llegaste_al_trabajo);if(!isNaN(h)){var slot=h.toString().padStart(2,'0')+':00';hours[slot]=(hours[slot]||0)+1;}}});
+  var hL=Object.keys(hours).sort();
+  charts.hour=new Chart(document.getElementById('chHour'),{type:'bar',data:{labels:hL,datasets:[{data:hL.map(function(h){return hours[h];}),backgroundColor:'rgba(16,185,129,.5)',hoverBackgroundColor:'#10b981',borderRadius:4,barThickness:36}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
 
-  // Age
-  const ages = countBy(surveyData, 'edad');
-  const ageOrder = ['18-35','36-45','46-59','+60'];
-  charts.age = new Chart(document.getElementById('chAge'), { type:'doughnut', data:{labels:ageOrder,datasets:[{data:ageOrder.map(a=>ages[a]||0),backgroundColor:['#34a853','#1a73e8','#fbbc04','#ea4335'],borderWidth:0,spacing:2}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}}}}});
+  // Age - doughnut
+  var ages=countBy(surveyData,'edad');
+  var ageOrder=['18-35','36-45','46-59','+60'];
+  charts.age=new Chart(document.getElementById('chAge'),{type:'doughnut',data:{labels:ageOrder,datasets:[{data:ageOrder.map(function(a){return ages[a]||0;}),backgroundColor:['#10b981','#34d399','#6ee7b7','#a7f3d0'],borderWidth:0,spacing:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{padding:10,usePointStyle:true,pointStyleWidth:8,font:{size:11}}}}}});
 
   // Gender
-  const genders = countBy(surveyData, 'g_nero');
-  charts.gender = new Chart(document.getElementById('chGender'), { type:'doughnut', data:{labels:Object.keys(genders),datasets:[{data:Object.values(genders),backgroundColor:['#1a73e8','#ea4335'],borderWidth:0,spacing:2}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}}}}});
+  var genders=countBy(surveyData,'g_nero');
+  charts.gender=new Chart(document.getElementById('chGender'),{type:'doughnut',data:{labels:Object.keys(genders),datasets:[{data:Object.values(genders),backgroundColor:['#10b981','#34d399','#a7f3d0'],borderWidth:0,spacing:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{padding:10,usePointStyle:true,pointStyleWidth:8,font:{size:11}}}}}});
 
-  // Time bands
-  const bands = {'< 15 min':0,'15-30 min':0,'30-45 min':0,'> 45 min':0};
-  odData.forEach(o => { const f=fc(o.tiempo_min); bands[f.lb]+=(o.num_trabajadores||0); });
-  charts.band = new Chart(document.getElementById('chBand'), { type:'doughnut', data:{labels:Object.keys(bands),datasets:[{data:Object.values(bands),backgroundColor:['#10b981','#f59e0b','#f97316','#ef4444'],borderWidth:0,spacing:2}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}}}}});
-
-  // Motor type
-  const motors = countBy(surveyData.filter(s=>s.el_motor_es_solo_si_coche_soloa), 'el_motor_es_solo_si_coche_soloa');
+  // Motor
+  var motors=countBy(surveyData.filter(function(s){return s.el_motor_es_solo_si_coche_soloa;}),'el_motor_es_solo_si_coche_soloa');
   delete motors['N/D']; delete motors[''];
-  charts.motor = new Chart(document.getElementById('chMotor'), { type:'bar', data:{labels:Object.keys(motors),datasets:[{data:Object.values(motors),backgroundColor:['#374151','#6b7280','#10b981','#1a73e8'],borderRadius:6}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}});
+  charts.motor=new Chart(document.getElementById('chMotor'),{type:'doughnut',data:{labels:Object.keys(motors),datasets:[{data:Object.values(motors),backgroundColor:['#059669','#10b981','#34d399','#6ee7b7'],borderWidth:0,spacing:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{padding:10,usePointStyle:true,pointStyleWidth:8,font:{size:11}}}}}});
 }
 
 // ============================
 // GAP ANALYSIS
 // ============================
-function renderGapAnalysis() {
-  const actual = countBy(surveyData, '_c_mo_te_desplazas_habitualment');
-  const pref = countBy(surveyData, '_cu_l_ser_a_tu_preferencia_para');
-  // Normalize preference names to match actual
-  const prefMap = {'Transporte público':'Tren o Metro o Tranvía','Coche':'Coche (yo solo)','Coche compartido':'Coche (Compartido)','Bicicleta (normal o eléctrica)':'Bicicleta','Transporte de empresa':'Otros','Moto':'Moto','Andando':'Andando'};
-  const prefNorm = {};
-  Object.entries(pref).forEach(([k,v]) => { const nk = prefMap[k] || k; prefNorm[nk] = (prefNorm[nk]||0)+v; });
+function renderGapAnalysis(){
+  var actual=countBy(surveyData,'_c_mo_te_desplazas_habitualment');
+  var pref=countBy(surveyData,'_cu_l_ser_a_tu_preferencia_para');
+  var prefMap={'Transporte público':'Tren o Metro o Tranvía','Coche':'Coche (yo solo)','Coche compartido':'Coche (Compartido)','Bicicleta (normal o eléctrica)':'Bicicleta','Transporte de empresa':'Otros','Moto':'Moto','Andando':'Andando'};
+  var prefNorm={};
+  Object.entries(pref).forEach(function(e){var nk=prefMap[e[0]]||e[0];prefNorm[nk]=(prefNorm[nk]||0)+e[1];});
+  var allModes=[].concat(Object.keys(actual),Object.keys(prefNorm)).filter(function(v,i,a){return a.indexOf(v)===i&&v!=='N/D';});
+  var total=surveyData.length;
+  var maxPct=Math.max.apply(null,allModes.map(function(m){return Math.max((actual[m]||0)/total*100,(prefNorm[m]||0)/total*100);}));
 
-  const allModes = [...new Set([...Object.keys(actual),...Object.keys(prefNorm)])].filter(m=>m!=='N/D');
-  const total = surveyData.length;
-  const maxPct = Math.max(...allModes.map(m => Math.max((actual[m]||0)/total*100, (prefNorm[m]||0)/total*100)));
-
-  document.getElementById('gapBars').innerHTML = allModes.sort((a,b)=>(actual[b]||0)-(actual[a]||0)).map(m => {
-    const aPct = ((actual[m]||0)/total*100);
-    const pPct = ((prefNorm[m]||0)/total*100);
-    const aW = aPct/maxPct*100;
-    const pW = pPct/maxPct*100;
-    return `<div class="gap-bar">
-      <div class="gap-label">${m.length>22?m.slice(0,20)+'…':m}</div>
-      <div style="flex:1">
-        <div style="display:flex;gap:2px;margin-bottom:2px"><div class="gap-actual" style="width:${aW}%;min-width:18px">${Math.round(aPct)}%</div></div>
-        <div style="display:flex;gap:2px"><div class="gap-pref" style="width:${pW}%;min-width:18px">${Math.round(pPct)}%</div></div>
-      </div>
-    </div>`;
+  document.getElementById('gapBars').innerHTML=allModes.sort(function(a,b){return (actual[b]||0)-(actual[a]||0);}).map(function(m){
+    var aPct=Math.round((actual[m]||0)/total*100); var pPct=Math.round((prefNorm[m]||0)/total*100);
+    var aW=aPct/maxPct*100; var pW=pPct/maxPct*100;
+    var delta=(prefNorm[m]||0)-(actual[m]||0); var sign=delta>0?'+':''; var cls=delta>0?'pos':delta<0?'neg':'zero';
+    return '<div class="gap-row"><div class="gap-label">'+(m.length>22?m.slice(0,20)+'…':m)+'</div><div class="gap-bars-wrap"><div class="gap-bar-line gap-bar-actual" style="width:'+Math.max(aW,4)+'%">'+aPct+'%</div><div class="gap-bar-line gap-bar-pref" style="width:'+Math.max(pW,4)+'%">'+pPct+'%</div></div><div class="gap-delta '+cls+'">'+sign+delta+'</div></div>';
   }).join('');
 
-  // Opportunity chart (delta)
-  const deltas = allModes.map(m => ({ mode: m, delta: (prefNorm[m]||0) - (actual[m]||0) })).sort((a,b)=>b.delta-a.delta);
-  charts.opportunity = new Chart(document.getElementById('chOpportunity'), {
-    type: 'bar',
-    data: {
-      labels: deltas.map(d => d.mode.length>18?d.mode.slice(0,16)+'…':d.mode),
-      datasets: [{
-        data: deltas.map(d => d.delta),
-        backgroundColor: deltas.map(d => d.delta >= 0 ? '#10b981' : '#ef4444'),
-        borderRadius: 4
-      }]
-    },
-    options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=> (c.raw>0?'+':'')+c.raw+' personas'}} },
-      scales:{ x:{grid:{color:'#f0f0f0'}}, y:{grid:{display:false}} }
-    }
-  });
+  var t=I18N[lang];
+  document.getElementById('insightsBox').innerHTML=
+    '<div class="insight-item"><div class="insight-num">01</div><div class="insight-text">'+t.ins1+'</div></div>'+
+    '<div class="insight-item"><div class="insight-num">02</div><div class="insight-text">'+t.ins2+'</div></div>'+
+    '<div class="insight-item"><div class="insight-num">03</div><div class="insight-text">'+t.ins3+'</div></div>';
 }
 
 // ============================
 // SIMULATOR
 // ============================
-function renderSimulator() {
-  const cocheSolo = surveyData.filter(s => s._c_mo_te_desplazas_habitualment === 'Coche (yo solo)').length;
-  const motos = surveyData.filter(s => s._c_mo_te_desplazas_habitualment === 'Moto').length;
+function renderSimulator(){
+  var t=I18N[lang];
+  var cocheSolo=surveyData.filter(function(s){return s._c_mo_te_desplazas_habitualment==='Coche (yo solo)';}).length;
+  var motos=surveyData.filter(function(s){return s._c_mo_te_desplazas_habitualment==='Moto';}).length;
 
-  document.getElementById('simSliders').innerHTML = `
-    <div class="sim-row"><label data-i18n="simCoche">${I18N[lang].simCoche}</label><input type="range" min="0" max="100" value="30" id="slCoche" oninput="updateSim()"><span class="sim-val" id="vlCoche">30%</span></div>
-    <div class="sim-row"><label data-i18n="simMoto">${I18N[lang].simMoto}</label><input type="range" min="0" max="100" value="20" id="slMoto" oninput="updateSim()"><span class="sim-val" id="vlMoto">20%</span></div>
-    <div class="sim-row"><label data-i18n="simCompartir">${I18N[lang].simCompartir}</label><input type="range" min="0" max="100" value="15" id="slCompartir" oninput="updateSim()"><span class="sim-val" id="vlCompartir">15%</span></div>
-  `;
+  document.getElementById('simSliders').innerHTML=
+    '<div class="sim-scenario"><div class="sim-icons">'+E.car+'<div class="arrow">'+E.arrow+'</div>'+E.bus+'</div><div class="sim-body"><div class="sim-label">'+t.simL1+'</div><input type="range" min="0" max="100" value="30" id="slCoche" oninput="updateSim()"></div><div class="sim-pct" id="vlCoche">30%</div></div>'+
+    '<div class="sim-scenario"><div class="sim-icons">'+E.moto+'<div class="arrow">'+E.arrow+'</div>'+E.bike+'</div><div class="sim-body"><div class="sim-label">'+t.simL2+'</div><input type="range" min="0" max="100" value="20" id="slMoto" oninput="updateSim()"></div><div class="sim-pct" id="vlMoto">20%</div></div>'+
+    '<div class="sim-scenario"><div class="sim-icons">'+E.car+'<div class="arrow">'+E.arrow+'</div>'+E.carpool+'</div><div class="sim-body"><div class="sim-label">'+t.simL3+'</div><input type="range" min="0" max="100" value="15" id="slCompartir" oninput="updateSim()"></div><div class="sim-pct" id="vlCompartir">15%</div></div>';
 
-  window.updateSim = function() {
-    const pCoche = parseInt(document.getElementById('slCoche').value);
-    const pMoto = parseInt(document.getElementById('slMoto').value);
-    const pComp = parseInt(document.getElementById('slCompartir').value);
-    document.getElementById('vlCoche').textContent = pCoche + '%';
-    document.getElementById('vlMoto').textContent = pMoto + '%';
-    document.getElementById('vlCompartir').textContent = pComp + '%';
-
-    const cocheToTP = Math.round(cocheSolo * pCoche / 100);
-    const motoToBici = Math.round(motos * pMoto / 100);
-    const cocheToComp = Math.round(cocheSolo * pComp / 100);
-
-    // Average distance for car drivers
-    const avgKm = odData.reduce((s,o) => s + o.distancia_km * (o.num_trabajadores||0), 0) / odData.reduce((s,o) => s + (o.num_trabajadores||0), 0);
-    const co2Save = (cocheToTP * (170-30) * avgKm * 2 / 1000) + (motoToBici * 90 * avgKm * 2 / 1000) + (cocheToComp * (170-85) * avgKm * 2 / 1000);
-    const lessCards = cocheToTP + motoToBici + cocheToComp;
-    const moreTP = cocheToTP;
-
-    document.getElementById('simResults').innerHTML = `
-      <div class="sim-card pos"><div class="sim-big">-${co2Save.toFixed(1)} kg</div><div class="sim-lbl" data-i18n="simCO2">${I18N[lang].simCO2}</div></div>
-      <div class="sim-card pos"><div class="sim-big">-${lessCards}</div><div class="sim-lbl" data-i18n="simCoches">${I18N[lang].simCoches}</div></div>
-      <div class="sim-card pos"><div class="sim-big">+${moreTP}</div><div class="sim-lbl" data-i18n="simTP">${I18N[lang].simTP}</div></div>
-    `;
+  window.updateSim=function(){
+    var t=I18N[lang];
+    var pCoche=parseInt(document.getElementById('slCoche').value);
+    var pMoto=parseInt(document.getElementById('slMoto').value);
+    var pComp=parseInt(document.getElementById('slCompartir').value);
+    document.getElementById('vlCoche').textContent=pCoche+'%';
+    document.getElementById('vlMoto').textContent=pMoto+'%';
+    document.getElementById('vlCompartir').textContent=pComp+'%';
+    var cocheToTP=Math.round(cocheSolo*pCoche/100);
+    var motoToBici=Math.round(motos*pMoto/100);
+    var cocheToComp=Math.round(cocheSolo*pComp/100);
+    var avgKm=odData.reduce(function(s,o){return s+o.distancia_km*(o.num_trabajadores||0);},0)/odData.reduce(function(s,o){return s+(o.num_trabajadores||0);},0);
+    var co2Save=(cocheToTP*(170-30)*avgKm*2/1000)+(motoToBici*90*avgKm*2/1000)+(cocheToComp*(170-85)*avgKm*2/1000);
+    var lessCars=cocheToTP+motoToBici+cocheToComp;
+    document.getElementById('simResults').innerHTML=
+      '<div><div class="impact-val green">-'+co2Save.toFixed(1)+'</div><div class="impact-lbl">'+t.impCO2+'</div></div>'+
+      '<div class="impact-divider"></div>'+
+      '<div><div class="impact-val dark">-'+lessCars+'</div><div class="impact-lbl">'+t.impCars+'</div></div>'+
+      '<div class="impact-divider"></div>'+
+      '<div><div class="impact-val green">+'+cocheToTP+'</div><div class="impact-lbl">'+t.impTP+'</div></div>';
   };
   window.updateSim();
 }
@@ -754,69 +812,255 @@ function renderSimulator() {
 // ============================
 // SUSTAINABILITY
 // ============================
-function renderSustainability() {
-  // Calculate CO2 per person per day (round trip)
-  const avgKmByMode = {};
-  surveyData.forEach(s => {
-    const mode = s._c_mo_te_desplazas_habitualment;
-    const od = odData.find(o => {
-      const dx = Math.abs((o.origen_x||0) - (s._x||0));
-      const dy = Math.abs((o.origen_y||0) - (s._y||0));
-      return dx < 0.02 && dy < 0.02;
+function renderSustainability(){
+  var t=I18N[lang];
+  var avgKmByMode={};
+  surveyData.forEach(function(s){
+    var mode=s._c_mo_te_desplazas_habitualment;
+    var od=odData.find(function(o){return Math.abs((o.origen_x||0)-(s._x||0))<0.02&&Math.abs((o.origen_y||0)-(s._y||0))<0.02;});
+    if(!avgKmByMode[mode]) avgKmByMode[mode]={totalKm:0,count:0};
+    avgKmByMode[mode].totalKm+=(od?od.distancia_km:15); avgKmByMode[mode].count++;
+  });
+  var totalCO2=0,co2ByMode={};
+  surveyData.forEach(function(s){
+    var mode=s._c_mo_te_desplazas_habitualment||'N/D'; var ef=CO2_FACTORS[mode]||100;
+    var avg=avgKmByMode[mode]?avgKmByMode[mode].totalKm/avgKmByMode[mode].count:15;
+    var daily=ef*avg*2/1000; totalCO2+=daily; co2ByMode[mode]=(co2ByMode[mode]||0)+daily;
+  });
+  var prefMap2={'Transporte público':'Tren o Metro o Tranvía','Coche':'Coche (yo solo)','Coche compartido':'Coche (Compartido)','Bicicleta (normal o eléctrica)':'Bicicleta','Transporte de empresa':'Autobús','Moto':'Moto','Andando':'Andando'};
+  var prefCO2=0;
+  surveyData.forEach(function(s){
+    var pref=s._cu_l_ser_a_tu_preferencia_para||''; var mode=prefMap2[pref]||pref;
+    var ef=CO2_FACTORS[mode]||100; var origMode=s._c_mo_te_desplazas_habitualment||'N/D';
+    var avg=avgKmByMode[origMode]?avgKmByMode[origMode].totalKm/avgKmByMode[origMode].count:15;
+    prefCO2+=ef*avg*2/1000;
+  });
+  var saving=totalCO2-prefCO2; var savingPct=Math.round(saving/totalCO2*100);
+
+  document.getElementById('gaugeRow').innerHTML=
+    '<div class="gauge-card"><div class="gauge-val" style="color:#ef4444">'+totalCO2.toFixed(1)+'</div><div class="gauge-lbl">'+t.susActual+'</div><div class="gauge-bar"><div class="gauge-fill" style="width:100%;background:#ef4444"></div></div></div>'+
+    '<div class="gauge-card"><div class="gauge-val" style="color:#f59e0b">'+prefCO2.toFixed(1)+'</div><div class="gauge-lbl">'+t.susPref+'</div><div class="gauge-bar"><div class="gauge-fill" style="width:'+Math.round(prefCO2/totalCO2*100)+'%;background:#f59e0b"></div></div></div>'+
+    '<div class="gauge-card"><div class="gauge-val" style="color:var(--green)">-'+savingPct+'%</div><div class="gauge-lbl">'+t.susAhorro+'</div><div class="gauge-bar"><div class="gauge-fill" style="width:'+savingPct+'%;background:var(--green)"></div></div></div>';
+
+  var modeLabels=Object.keys(co2ByMode).filter(function(m){return m!=='N/D';}).sort(function(a,b){return co2ByMode[b]-co2ByMode[a];});
+  charts.co2=new Chart(document.getElementById('chCO2'),{type:'bar',data:{labels:modeLabels.map(function(m){return m.length>18?m.slice(0,16)+'…':m;}),datasets:[{data:modeLabels.map(function(m){return parseFloat(co2ByMode[m].toFixed(1));}),backgroundColor:COLORS,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+
+  charts.co2save=new Chart(document.getElementById('chCO2Save'),{type:'bar',data:{labels:['Situación Actual','Si preferencia'],datasets:[{data:[parseFloat(totalCO2.toFixed(1)),parseFloat(prefCO2.toFixed(1))],backgroundColor:['#ef4444','#10b981'],borderRadius:8,barThickness:60}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+}
+
+// ============================
+// ROUTE FINDER (SEC 7)
+// ============================
+var routeMap = null, routeView = null, routeGfxLayer = null, routeOrigin = null;
+
+function initRouteMap() {
+  if (routeMap) return;
+  require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Point","esri/symbols/SimpleMarkerSymbol"],
+  function(Map,MapView,GraphicsLayer,Graphic,Point,SimpleMarkerSymbol){
+    routeGfxLayer = new GraphicsLayer();
+    routeMap = new Map({ basemap:"gray-vector", layers:[routeGfxLayer] });
+    routeView = new MapView({ container:"routeMapDiv", map:routeMap, center:[DEST.x,DEST.y], zoom:12, ui:{components:["zoom"]} });
+    routeGfxLayer.add(new Graphic({
+      geometry: new Point({longitude:DEST.x,latitude:DEST.y}),
+      symbol: new SimpleMarkerSymbol({color:"#dc2626",outline:{color:"#fff",width:2},size:14,style:"diamond"})
+    }));
+    routeView.on("click", function(e){
+      routeOrigin = { lon: e.mapPoint.longitude, lat: e.mapPoint.latitude };
+      document.getElementById('routeAddress').value = routeOrigin.lat.toFixed(4)+', '+routeOrigin.lon.toFixed(4);
+      solveRoutes(routeOrigin.lon, routeOrigin.lat);
     });
-    if (!avgKmByMode[mode]) avgKmByMode[mode] = { totalKm: 0, count: 0 };
-    avgKmByMode[mode].totalKm += (od ? od.distancia_km : 15);
-    avgKmByMode[mode].count++;
-  });
-
-  let totalCO2 = 0;
-  const co2ByMode = {};
-  surveyData.forEach(s => {
-    const mode = s._c_mo_te_desplazas_habitualment || 'N/D';
-    const ef = CO2_FACTORS[mode] || 100;
-    const avg = avgKmByMode[mode] ? avgKmByMode[mode].totalKm / avgKmByMode[mode].count : 15;
-    const daily = ef * avg * 2 / 1000; // kg/day round trip
-    totalCO2 += daily;
-    co2ByMode[mode] = (co2ByMode[mode] || 0) + daily;
-  });
-
-  // Preferred scenario
-  const prefMap = {'Transporte público':'Tren o Metro o Tranvía','Coche':'Coche (yo solo)','Coche compartido':'Coche (Compartido)','Bicicleta (normal o eléctrica)':'Bicicleta','Transporte de empresa':'Autobús','Moto':'Moto','Andando':'Andando'};
-  let prefCO2 = 0;
-  surveyData.forEach(s => {
-    const pref = s._cu_l_ser_a_tu_preferencia_para || '';
-    const mode = prefMap[pref] || pref;
-    const ef = CO2_FACTORS[mode] || 100;
-    const origMode = s._c_mo_te_desplazas_habitualment || 'N/D';
-    const avg = avgKmByMode[origMode] ? avgKmByMode[origMode].totalKm / avgKmByMode[origMode].count : 15;
-    prefCO2 += ef * avg * 2 / 1000;
-  });
-
-  const saving = totalCO2 - prefCO2;
-  const savingPct = Math.round(saving / totalCO2 * 100);
-
-  // Gauges
-  document.getElementById('gaugeRow').innerHTML = `
-    <div class="gauge-card"><div class="gauge-val" style="color:#ef4444">${totalCO2.toFixed(1)}</div><div class="gauge-lbl" data-i18n="susActual">${I18N[lang].susActual}</div><div class="gauge-bar"><div class="gauge-fill" style="width:100%;background:#ef4444"></div></div></div>
-    <div class="gauge-card"><div class="gauge-val" style="color:#f59e0b">${prefCO2.toFixed(1)}</div><div class="gauge-lbl" data-i18n="susPref">${I18N[lang].susPref}</div><div class="gauge-bar"><div class="gauge-fill" style="width:${Math.round(prefCO2/totalCO2*100)}%;background:#f59e0b"></div></div></div>
-    <div class="gauge-card"><div class="gauge-val" style="color:#10b981">-${savingPct}%</div><div class="gauge-lbl" data-i18n="susAhorro">${I18N[lang].susAhorro}</div><div class="gauge-bar"><div class="gauge-fill" style="width:${savingPct}%;background:#10b981"></div></div></div>
-  `;
-
-  // CO2 by mode chart
-  const modeLabels = Object.keys(co2ByMode).filter(m=>m!=='N/D').sort((a,b)=>co2ByMode[b]-co2ByMode[a]);
-  charts.co2 = new Chart(document.getElementById('chCO2'), {
-    type:'bar', data:{ labels:modeLabels.map(m=>m.length>18?m.slice(0,16)+'…':m),
-    datasets:[{data:modeLabels.map(m=>parseFloat(co2ByMode[m].toFixed(1))),backgroundColor:COLORS,borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
-  });
-
-  // CO2 save comparison
-  charts.co2save = new Chart(document.getElementById('chCO2Save'), {
-    type:'bar', data:{ labels:['Situación Actual','Si preferencia'],
-    datasets:[{data:[parseFloat(totalCO2.toFixed(1)), parseFloat(prefCO2.toFixed(1))],backgroundColor:['#ef4444','#10b981'],borderRadius:8,barThickness:60}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
   });
 }
+
+function searchRoute() {
+  var addr = document.getElementById('routeAddress').value.trim();
+  if (!addr) return;
+  var t = I18N[lang];
+  document.getElementById('routeResults').innerHTML = '<div class="route-loading"><div class="spinner"></div>'+t.rtSearching+'</div>';
+  require(["esri/rest/locator"], function(locator){
+    locator.addressToLocations(GEOCODE_URL, {
+      address: { SingleLine: addr },
+      countryCode: 'ES',
+      maxLocations: 1,
+      outFields: ['*']
+    }).then(function(results){
+      if (!results || results.length === 0) {
+        document.getElementById('routeResults').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);font-size:13px">'+t.rtNotFound+'</div>';
+        return;
+      }
+      var loc = results[0].location;
+      routeOrigin = { lon: loc.longitude, lat: loc.latitude };
+      solveRoutes(loc.longitude, loc.latitude);
+    }).catch(function(err){
+      console.error('[PMCT] Geocode error:', err);
+      document.getElementById('routeResults').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);font-size:13px">'+t.rtNotFound+'</div>';
+    });
+  });
+}
+
+function solveRoutes(originLon, originLat) {
+  var t = I18N[lang];
+  document.getElementById('routeResults').innerHTML = '<div class="route-loading"><div class="spinner"></div>'+t.rtSearching+'</div>';
+
+  require(["esri/rest/route","esri/rest/support/RouteParameters","esri/rest/support/FeatureSet","esri/Graphic","esri/geometry/Point","esri/symbols/SimpleMarkerSymbol","esri/symbols/SimpleLineSymbol"],
+  function(route, RouteParameters, FeatureSet, Graphic, Point, SimpleMarkerSymbol, SimpleLineSymbol){
+    var destGfx = routeGfxLayer.graphics.getItemAt(0);
+    routeGfxLayer.removeAll();
+    routeGfxLayer.add(destGfx);
+    routeGfxLayer.add(new Graphic({
+      geometry: new Point({longitude:originLon,latitude:originLat}),
+      symbol: new SimpleMarkerSymbol({color:"#3b82f6",outline:{color:"#fff",width:2},size:12})
+    }));
+    routeView.goTo({ center:[(originLon+DEST.x)/2,(originLat+DEST.y)/2], zoom:11 });
+
+    var originPt = new Point({longitude:originLon,latitude:originLat});
+    var destPt = new Point({longitude:DEST.x,latitude:DEST.y});
+    function makeStops(){ return new FeatureSet({ features:[ new Graphic({geometry:originPt}), new Graphic({geometry:destPt}) ] }); }
+
+    // Solve driving route via JS API
+    var driveParams = new RouteParameters({ stops:makeStops(), returnDirections:false, returnRoutes:true, outSpatialReference:{wkid:4326} });
+
+    // Solve walking route via REST (JS API route module doesn't have fetchTravelModes in 4.31)
+    var walkBody = new URLSearchParams({
+      f:'json',
+      token: TOKEN,
+      stops: JSON.stringify({
+        type:'features',
+        features:[
+          {geometry:{x:originLon,y:originLat,spatialReference:{wkid:4326}}},
+          {geometry:{x:DEST.x,y:DEST.y,spatialReference:{wkid:4326}}}
+        ]
+      }),
+      travelMode: JSON.stringify({
+        type:'WALK',
+        impedanceAttributeName:'WalkTime',
+        timeAttributeName:'WalkTime',
+        distanceAttributeName:'Kilometers',
+        restrictionAttributeNames:['Preferred for Pedestrians','Walking'],
+        uturnAtJunctions:'esriNFSBAllowBacktrack',
+        simplificationToleranceUnits:'esriMeters',
+        simplificationTolerance:10
+      }),
+      returnRoutes: true,
+      returnDirections: false,
+      outSR: '4326'
+    });
+
+    Promise.all([
+      route.solve(ROUTE_URL, driveParams),
+      fetch(ROUTE_URL+'/solve', {method:'POST', body:walkBody}).then(function(r){return r.json();}).catch(function(){return null;})
+    ]).then(function(results){
+      var driveRoute = results[0].routeResults[0].route;
+      var distKm = driveRoute.attributes.Total_Kilometers || driveRoute.attributes.Total_Length || 0;
+      var driveMin = driveRoute.attributes.Total_TravelTime || driveRoute.attributes.Total_Minutes || 0;
+
+      // Parse walking result from REST
+      var walkData = results[1];
+      var walkGeom = null, walkDistKm = distKm, walkMin = Math.round(distKm/ROUTE_SPEEDS.walk*60);
+      if(walkData && walkData.routes && walkData.routes.features && walkData.routes.features.length>0){
+        var wf = walkData.routes.features[0];
+        walkDistKm = wf.attributes.Total_Kilometers || wf.attributes.Shape_Length*0.00001 || distKm;
+        walkMin = Math.round(wf.attributes.Total_WalkTime || wf.attributes.Total_TravelTime || walkMin);
+        // Build polyline from REST response
+        if(wf.geometry && wf.geometry.paths){
+          walkGeom = {type:'polyline', paths:wf.geometry.paths, spatialReference:{wkid:4326}};
+        }
+      }
+
+      routeGeometries.car = driveRoute.geometry;
+      routeGeometries.walk = walkGeom || driveRoute.geometry;
+      routeGeometries.bike = walkGeom || driveRoute.geometry;
+      routeGeometries.transit = driveRoute.geometry;
+
+      var lineStyles = {
+        car:   {color:ROUTE_COLORS.car, width:5, style:'solid'},
+        transit:{color:ROUTE_COLORS.transit, width:4, style:'short-dash'},
+        bike:  {color:ROUTE_COLORS.bike, width:4, style:'short-dot'},
+        walk:  {color:ROUTE_COLORS.walk, width:3, style:'short-dash-dot'}
+      };
+      ['walk','bike','transit','car'].forEach(function(id){
+        routeGfxLayer.add(new Graphic({
+          geometry: routeGeometries[id],
+          symbol: new SimpleLineSymbol(lineStyles[id]),
+          attributes: {routeMode: id}
+        }));
+      });
+
+      var modes = [
+        { id:'car', icon:E.car, time:Math.round(driveMin), dist:distKm, co2:ROUTE_CO2.car*distKm/1000 },
+        { id:'walk', icon:E.walk, time:walkMin, dist:walkDistKm, co2:0 },
+        { id:'bike', icon:E.bike, time:Math.round(walkDistKm/ROUTE_SPEEDS.bike*60), dist:walkDistKm, co2:0 },
+        { id:'transit', icon:E.train, time:Math.round(distKm/ROUTE_SPEEDS.transit*60), dist:distKm, co2:ROUTE_CO2.transit*distKm/1000 }
+      ];
+      renderRouteResults(modes, distKm);
+    }).catch(function(err){
+      console.error('[PMCT] Route error:', err);
+      document.getElementById('routeResults').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);font-size:13px">Error: '+err.message+'</div>';
+    });
+  });
+}
+
+function renderRouteResults(modes, distKm) {
+  var t = I18N[lang];
+  var modeNames = { car:t.rtCar, walk:t.rtWalk, bike:t.rtBike, transit:t.rtTransit };
+  var carCO2 = modes[0].co2;
+  var html = '';
+  modes.forEach(function(m){
+    var co2Text = (m.co2*1000).toFixed(0);
+    html += '<div class="route-card" onclick="highlightRoute(\''+m.id+'\')" id="rc-'+m.id+'">'+
+      '<div class="rc-icon '+m.id+'">'+m.icon+'</div>'+
+      '<div class="rc-info">'+
+        '<div class="rc-mode">'+modeNames[m.id]+'</div>'+
+        '<div class="rc-time '+m.id+'">'+m.time+' <span style="font-size:12px;font-weight:400">'+t.rtTime+'</span></div>'+
+        '<div class="rc-detail">'+m.dist.toFixed(1)+' '+t.rtDist+'</div>'+
+      '</div>'+
+      '<div class="rc-co2">'+
+        '<div class="co2-val" style="color:'+(m.co2===0?'var(--green)':'var(--dark)')+'">'+co2Text+'</div>'+
+        '<div class="co2-lbl">'+t.rtCO2day+'</div>'+
+      '</div>'+
+    '</div>';
+  });
+  html += '<div class="route-summary"><div class="rs-title">'+t.rtSummary+'</div>';
+  modes.forEach(function(m){
+    if(m.id==='car') return;
+    var timeDiff = m.time - modes[0].time;
+    var co2Saved = ((carCO2 - m.co2)*1000).toFixed(0);
+    var timeDiffStr = (timeDiff>0?'+':'')+timeDiff+' '+t.rtTime;
+    html += '<div class="rs-row"><span>'+m.icon+' '+modeNames[m.id]+'</span><span style="color:'+(timeDiff>10?'var(--red)':'var(--gray)')+'">'+timeDiffStr+'</span><span class="rs-savings">-'+co2Saved+' g CO₂</span></div>';
+  });
+  html += '</div>';
+  document.getElementById('routeResults').innerHTML = html;
+  // Highlight car by default
+  highlightRoute('car');
+}
+
+function highlightRoute(modeId) {
+  // Update card styles
+  document.querySelectorAll('.route-card').forEach(function(c){ c.classList.remove('active'); });
+  var card = document.getElementById('rc-'+modeId);
+  if(card) card.classList.add('active');
+  // Update route line opacity on map
+  if(!routeGfxLayer) return;
+  routeGfxLayer.graphics.forEach(function(g){
+    if(!g.attributes || !g.attributes.routeMode) return;
+    var isActive = g.attributes.routeMode === modeId;
+    var color = ROUTE_COLORS[g.attributes.routeMode].slice();
+    color[3] = isActive ? 220 : 60;
+    var width = isActive ? 6 : 2;
+    g.symbol = g.symbol.clone();
+    g.symbol.color = color;
+    g.symbol.width = width;
+  });
+}
+
+// Override showSection to lazy-init route map
+(function(){
+  var _orig = window.showSection || showSection;
+  window.showSection = function(id, btn) {
+    _orig(id, btn);
+    if (id === 'sec7') { initRouteMap(); }
+  };
+})();
 </script>
 </body>
 </html>
