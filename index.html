@@ -180,6 +180,22 @@
   .impact-lbl{font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
   .impact-divider{height:0.5px;background:var(--slate-200);margin:16px 0}
 
+  /* SIM INDICATORS TABLE */
+  .sim-ind-table{width:100%;border-collapse:collapse;font-size:13px}
+  .sim-ind-table th{text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--slate-500);padding:8px 12px;border-bottom:0.5px solid var(--slate-200)}
+  .sim-ind-table td{padding:10px 12px;border-bottom:0.5px solid var(--slate-100);color:var(--slate-700)}
+  .sim-ind-table tr:last-child td{border-bottom:none}
+  .sim-ind-table .ind-name{font-weight:500;color:var(--slate-800);max-width:240px}
+  .sim-ind-table .ind-val{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .sim-ind-table .ind-proj{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .sim-ind-table .ind-delta{text-align:right;font-weight:600;font-size:12px;white-space:nowrap;min-width:80px}
+  .sim-ind-table .delta-pos{color:var(--accent)}
+  .sim-ind-table .delta-neg{color:var(--red)}
+  .sim-ind-table .delta-zero{color:var(--slate-400)}
+  .sim-ind-bar{display:flex;gap:3px;align-items:center;height:6px;margin-top:4px}
+  .sim-ind-bar-actual{height:100%;border-radius:3px;background:var(--slate-300);transition:width .3s}
+  .sim-ind-bar-proj{height:100%;border-radius:3px;background:var(--accent);transition:width .3s}
+
   /* GAUGE */
   .gauge-card{background:#fff;border:0.5px solid var(--slate-200);border-radius:var(--radius);padding:24px;text-align:center}
   .gauge-val{font-family:'Fraunces',serif;font-size:36px;font-weight:700;line-height:1}
@@ -444,6 +460,10 @@
             <div id="simResults" style="flex:1;display:flex;flex-direction:column;justify-content:center"></div>
           </div>
         </div>
+        <div class="card" id="simIndicatorCard">
+          <div class="card-title">Impacto en indicadores de seguimiento</div>
+          <div id="simIndicators"></div>
+        </div>
       </div>
 
       <!-- SEC 6: SOSTENIBILIDAD -->
@@ -552,6 +572,7 @@ var I18N = {
     ins3:'El coche solitario tiene la mayor brecha negativa: 17 puntos entre quienes lo usan y quienes lo prefieren.',
     simL1:'% de coche en solitario → transporte público',simL2:'% de moto → bicicleta',simL3:'% de coche en solitario → compartido',
     impCO2:'Kg CO₂ / día',impCars:'Menos coches al día',impTP:'Nuevos usuarios TP',
+    simIndTitle:'Impacto en indicadores de seguimiento',simIndName:'Indicador',simIndActual:'Actual',simIndProj:'Proyectado',simIndDelta:'Variación',
     susActual:'CO₂ Actual (kg/día)',susPref:'CO₂ si preferencia',susAhorro:'Ahorro potencial',
     nav7:'Mi ruta',nav8:'Seguimiento',
     sec8n:'08 · Seguimiento',sec8h:'Indicadores de seguimiento del PMCT',sec8p:'Seguimiento y control de los objetivos del plan de movilidad. Valores actuales, metas y beneficios esperados.',
@@ -580,6 +601,7 @@ var I18N = {
     ins3:'Auto bakarrak brecha negatiborik handiena du: 17 puntu erabiltzen dutenen eta nahiago dutenen artean.',
     simL1:'% auto bakarrik → garraio publikoa',simL2:'% moto → bizikleta',simL3:'% auto bakarrik → partekatua',
     impCO2:'Kg CO₂ / egun',impCars:'Auto gutxiago egunean',impTP:'GP erabiltzaile berriak',
+    simIndTitle:'Jarraipen-adierazleengan eragina',simIndName:'Adierazlea',simIndActual:'Egungo',simIndProj:'Proiektatua',simIndDelta:'Aldakuntza',
     susActual:'Egungo CO₂ (kg/egun)',susPref:'CO₂ lehentasunarekin',susAhorro:'Aurrezpen potentziala',
     nav7:'Nire ibilbidea',nav8:'Jarraipena',
     sec8n:'08 · Jarraipena',sec8h:'PMCTaren jarraipen-adierazleak',sec8p:'Mugikortasun planaren helburuen jarraipena eta kontrola. Egungo balioak, helburuak eta espero diren onurak.',
@@ -874,6 +896,10 @@ function renderSimulator(){
   var t=I18N[lang];
   var cocheSolo=surveyData.filter(function(s){return s._c_mo_te_desplazas_habitualment==='Coche (yo solo)';}).length;
   var motos=surveyData.filter(function(s){return s._c_mo_te_desplazas_habitualment==='Moto';}).length;
+  var biciCount=surveyData.filter(function(s){return s._c_mo_te_desplazas_habitualment==='Bicicleta';}).length;
+  var tpCount=surveyData.filter(function(s){var m=s._c_mo_te_desplazas_habitualment;return m==='Tren/Tranvía'||m==='Autobús'||m==='Metro';}).length;
+  var carpoolCount=surveyData.filter(function(s){return s._c_mo_te_desplazas_habitualment==='Coche compartido';}).length;
+  var totalSurvey=surveyData.length;
 
   document.getElementById('simSliders').innerHTML=
     '<div class="sim-scenario"><div class="sim-icons">'+E.car+'<div class="arrow">'+E.arrow+'</div>'+E.bus+'</div><div class="sim-body"><div class="sim-label">'+t.simL1+'</div><input type="range" min="0" max="100" value="30" id="slCoche" oninput="updateSim()"></div><div class="sim-pct" id="vlCoche">30%</div></div>'+
@@ -900,6 +926,49 @@ function renderSimulator(){
       '<div><div class="impact-val dark">-'+lessCars+'</div><div class="impact-lbl">'+t.impCars+'</div></div>'+
       '<div class="impact-divider"></div>'+
       '<div><div class="impact-val green">+'+cocheToTP+'</div><div class="impact-lbl">'+t.impTP+'</div></div>';
+
+    // Projected indicator values
+    var newBici=biciCount+motoToBici;
+    var newTP=tpCount+cocheToTP;
+    var newCarpool=carpoolCount+cocheToComp;
+    var newCocheSolo=cocheSolo-cocheToTP-cocheToComp;
+    var co2SaveYear=co2Save*220/1000; // 220 working days, kg→t
+    var baselineCO2Year=2.4; // current from SEGUIMIENTO_DATA obj5
+
+    var indicators=[
+      {name:{es:'% desplazamientos en bicicleta',eu:'% lekualdaketak bizikletaz'},
+       actual:(biciCount/totalSurvey*100),proj:(newBici/totalSurvey*100),unit:'%',good:'up',color:'#3b82f6'},
+      {name:{es:'% desplazamientos en transporte p'+String.fromCodePoint(0xFA)+'blico',eu:'% lekualdaketak garraio publikoan'},
+       actual:(tpCount/totalSurvey*100),proj:(newTP/totalSurvey*100),unit:'%',good:'up',color:'#f59e0b'},
+      {name:{es:'% desplazamientos en coche compartido',eu:'% lekualdaketak auto partekatuan'},
+       actual:(carpoolCount/totalSurvey*100),proj:(newCarpool/totalSurvey*100),unit:'%',good:'up',color:'#8b5cf6'},
+      {name:{es:'% desplazamientos en coche solo',eu:'% lekualdaketak auto bakarrian'},
+       actual:(cocheSolo/totalSurvey*100),proj:(newCocheSolo/totalSurvey*100),unit:'%',good:'down',color:'#ef4444'},
+      {name:{es:'CO'+String.fromCodePoint(0x2082)+' evitadas (t/a'+String.fromCodePoint(0xF1)+'o)',eu:'Ekiditutako CO'+String.fromCodePoint(0x2082)+' (t/urte)'},
+       actual:baselineCO2Year,proj:(baselineCO2Year+co2SaveYear),unit:'t',good:'up',color:'#0d9488'}
+    ];
+
+    var maxVal=Math.max.apply(null,indicators.map(function(ind){return Math.max(ind.actual,ind.proj);}));
+    var rows=indicators.map(function(ind){
+      var delta=ind.proj-ind.actual;
+      var isGood=(ind.good==='up'&&delta>0)||(ind.good==='down'&&delta<0);
+      var deltaClass=Math.abs(delta)<0.01?'delta-zero':(isGood?'delta-pos':'delta-neg');
+      var arrow=Math.abs(delta)<0.01?'=':(delta>0?String.fromCodePoint(0x25B2)+' +':String.fromCodePoint(0x25BC)+' ');
+      var deltaStr=Math.abs(delta)<0.01?'=':arrow+Math.abs(delta).toFixed(2);
+      var aW=ind.actual/maxVal*100;
+      var pW=ind.proj/maxVal*100;
+      return '<tr>'+
+        '<td class="ind-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+ind.color+';margin-right:8px;vertical-align:middle"></span>'+ind.name[lang]+
+        '<div class="sim-ind-bar" style="width:160px"><div class="sim-ind-bar-actual" style="width:'+Math.max(aW,2)+'%"></div><div class="sim-ind-bar-proj" style="width:'+Math.max(pW,2)+'%"></div></div></td>'+
+        '<td class="ind-val">'+ind.actual.toFixed(2)+ind.unit+'</td>'+
+        '<td class="ind-proj" style="color:'+ind.color+'">'+ind.proj.toFixed(2)+ind.unit+'</td>'+
+        '<td class="ind-delta '+deltaClass+'">'+deltaStr+'</td></tr>';
+    }).join('');
+
+    document.getElementById('simIndicators').innerHTML=
+      '<table class="sim-ind-table"><thead><tr>'+
+      '<th>'+t.simIndName+'</th><th style="text-align:right">'+t.simIndActual+'</th><th style="text-align:right">'+t.simIndProj+'</th><th style="text-align:right">'+t.simIndDelta+'</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table>';
   };
   window.updateSim();
 }
