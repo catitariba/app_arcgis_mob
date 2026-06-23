@@ -199,12 +199,48 @@
   .route-loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--gray);font-size:13px}
   .route-loading .spinner{width:20px;height:20px;border:2px solid #e5e7eb;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
 
+  /* SEGUIMIENTO */
+  .seg-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .seg-kpi{background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.6);border-radius:var(--radius);padding:20px 22px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 20px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.7);text-align:center;position:relative;overflow:hidden}
+  .seg-kpi::after{content:'';position:absolute;inset:0;border-radius:var(--radius);opacity:.1;pointer-events:none}
+  .seg-kpi .sk-val{font-family:'Fraunces',serif;font-size:34px;font-weight:700;line-height:1.1;position:relative;z-index:1}
+  .seg-kpi .sk-lbl{font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:6px;position:relative;z-index:1}
+  .obj-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .obj-tab{padding:10px 18px;border:1px solid rgba(255,255,255,.55);border-radius:12px;background:rgba(255,255,255,.4);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));cursor:pointer;font-size:13px;font-weight:500;color:var(--gray);transition:all .15s;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px}
+  .obj-tab:hover{border-color:rgba(16,185,129,.3);color:var(--dark)}
+  .obj-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+  .obj-tab .ot-icon{font-size:16px}
+  .obj-panel{display:none}.obj-panel.active{display:block}
+  .ind-table{width:100%;border-collapse:collapse;font-size:12px}
+  .ind-table thead{background:rgba(16,185,129,.04)}
+  .ind-table th{padding:10px 12px;text-align:left;font-weight:600;color:var(--gray);font-size:10px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid rgba(16,185,129,.1)}
+  .ind-table td{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:middle}
+  .ind-table tr:hover{background:rgba(16,185,129,.03)}
+  .ind-val{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--dark)}
+  .ind-trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+  .ind-trend.up{background:rgba(16,185,129,.12);color:#059669}
+  .ind-trend.down{background:rgba(239,68,68,.1);color:#dc2626}
+  .ind-trend.stable{background:rgba(107,114,128,.1);color:#6b7280}
+  .ind-method{font-size:11px;color:var(--gray)}
+  .ind-freq{font-size:11px;color:var(--gray);font-style:italic}
+  .ben-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:16px}
+  .ben-item{background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.5);border-radius:12px;padding:14px 12px;text-align:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .ben-item .bi-icon{font-size:22px;margin-bottom:6px}
+  .ben-item .bi-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--green);margin-bottom:4px}
+  .ben-item .bi-txt{font-size:11px;color:var(--gray);line-height:1.4}
+  .obj-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .obj-header .oh-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .obj-header .oh-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--dark)}
+  .obj-header .oh-desc{font-size:12px;color:var(--gray);margin-top:2px}
+
   @media(max-width:900px){
     .sidebar{display:none}
     .kpi-grid{grid-template-columns:1fr 1fr}
     .grid-2,.grid-3,.grid-2-1{grid-template-columns:1fr}
     .top-header{padding:16px 20px 0}.content-scroll{padding:12px 20px 20px}
     .route-layout{grid-template-columns:1fr;height:auto}.route-map-wrap{height:300px}
+    .seg-summary{grid-template-columns:1fr 1fr}
+    .ben-grid{grid-template-columns:1fr 1fr}
   }
 </style>
 </head>
@@ -270,6 +306,10 @@
       <button class="nav-btn" data-sec="sec7" onclick="showSection('sec7',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         Mi ruta
+      </button>
+      <button class="nav-btn" data-sec="sec8" onclick="showSection('sec8',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+        Seguimiento
       </button>
     </nav>
     <div class="sidebar-footer">
@@ -398,6 +438,18 @@
         </div>
       </div>
 
+      <!-- SEC 8: SEGUIMIENTO -->
+      <div class="section" id="sec8">
+        <div class="sec-header">
+          <div class="sec-num">08 · Seguimiento</div>
+          <h2>Indicadores de seguimiento del PMCT</h2>
+          <p>Seguimiento y control de los objetivos del plan de movilidad. Valores actuales, metas y beneficios esperados.</p>
+        </div>
+        <div class="seg-summary" id="segKpis"></div>
+        <div class="obj-tabs" id="objTabs"></div>
+        <div id="objPanels"></div>
+      </div>
+
       <!-- SEC 7: MI RUTA -->
       <div class="section" id="sec7">
         <div class="sec-header">
@@ -479,7 +531,14 @@ var I18N = {
     simL1:'% de coche en solitario → transporte público',simL2:'% de moto → bicicleta',simL3:'% de coche en solitario → compartido',
     impCO2:'Kg CO₂ / día',impCars:'Menos coches al día',impTP:'Nuevos usuarios TP',
     susActual:'CO₂ Actual (kg/día)',susPref:'CO₂ si preferencia',susAhorro:'Ahorro potencial',
-    nav7:'Mi ruta',rtCar:'Coche',rtWalk:'A pie',rtBike:'Bicicleta',rtTransit:'Transporte público',
+    nav7:'Mi ruta',nav8:'Seguimiento',
+    sec8n:'08 · Seguimiento',sec8h:'Indicadores de seguimiento del PMCT',sec8p:'Seguimiento y control de los objetivos del plan de movilidad. Valores actuales, metas y beneficios esperados.',
+    segObj:'objetivos',segInd:'indicadores',segUp:'en crecimiento',segCO2saved:'t CO₂ evitadas/año',
+    segName:'Indicador',segVal:'Valor actual',segTarget:'Meta',segTrend:'Tendencia',segMethod:'Método',segFreq:'Seguimiento',
+    segUp2:'Crecimiento',segDown2:'Reducción',segStable2:'Estable',
+    segBenTransporte:'Transporte',segBenEnergetico:'Energéticos',segBenAmbiental:'Ambientales',segBenEconomico:'Económicos',segBenSocial:'Sociales',
+    segBenTitle:'Beneficios esperados',
+    rtCar:'Coche',rtWalk:'A pie',rtBike:'Bicicleta',rtTransit:'Transporte público',
     rtSearching:'Calculando rutas…',rtNotFound:'Dirección no encontrada. Intenta de nuevo.',
     rtSummary:'Comparativa de impacto',rtCO2day:'g CO₂/viaje',rtSaving:'Ahorro vs. coche',rtTime:'min',rtDist:'km'
   },
@@ -500,7 +559,14 @@ var I18N = {
     simL1:'% auto bakarrik → garraio publikoa',simL2:'% moto → bizikleta',simL3:'% auto bakarrik → partekatua',
     impCO2:'Kg CO₂ / egun',impCars:'Auto gutxiago egunean',impTP:'GP erabiltzaile berriak',
     susActual:'Egungo CO₂ (kg/egun)',susPref:'CO₂ lehentasunarekin',susAhorro:'Aurrezpen potentziala',
-    nav7:'Nire ibilbidea',rtCar:'Autoa',rtWalk:'Oinez',rtBike:'Bizikleta',rtTransit:'Garraio publikoa',
+    nav7:'Nire ibilbidea',nav8:'Jarraipena',
+    sec8n:'08 · Jarraipena',sec8h:'PMCTaren jarraipen-adierazleak',sec8p:'Mugikortasun planaren helburuen jarraipena eta kontrola. Egungo balioak, helburuak eta espero diren onurak.',
+    segObj:'helburuak',segInd:'adierazleak',segUp:'hazkundean',segCO2saved:'t CO₂ ekidituta/urte',
+    segName:'Adierazlea',segVal:'Egungo balioa',segTarget:'Helburua',segTrend:'Joera',segMethod:'Metodoa',segFreq:'Jarraipena',
+    segUp2:'Hazkundea',segDown2:'Murrizketa',segStable2:'Egonkorra',
+    segBenTransporte:'Garraioa',segBenEnergetico:'Energetikoak',segBenAmbiental:'Ingurumenekoak',segBenEconomico:'Ekonomikoak',segBenSocial:'Sozialak',
+    segBenTitle:'Espero diren onurak',
+    rtCar:'Autoa',rtWalk:'Oinez',rtBike:'Bizikleta',rtTransit:'Garraio publikoa',
     rtSearching:'Ibilbideak kalkulatzen…',rtNotFound:'Helbidea ez da aurkitu. Saiatu berriro.',
     rtSummary:'Inpaktuaren konparaketa',rtCO2day:'g CO₂/bidaia',rtSaving:'Aurreztea vs. autoa',rtTime:'min',rtDist:'km'
   }
@@ -533,7 +599,7 @@ function setLang(l) {
     var spans = el.childNodes; var k='nav'+(i+1); if(t[k]) spans[spans.length-1].textContent = '\n        '+t[k]+'\n      ';
   });
   updateDateStr();
-  if (surveyData.length > 0) { renderKPIs(); renderGapAnalysis(); renderSimulator(); renderSustainability(); }
+  if (surveyData.length > 0) { renderKPIs(); renderGapAnalysis(); renderSimulator(); renderSustainability(); renderSeguimiento(); }
 }
 
 function toggleLang() { setLang(lang === 'es' ? 'eu' : 'es'); }
@@ -622,7 +688,7 @@ function loadAppData() {
   Promise.all([fetchSurvey(), fetchOD()]).then(function() {
     console.log('[PMCT] Survey:', surveyData.length, '| OD:', odData.length);
     document.getElementById('totalResp').textContent = surveyData.length;
-    renderKPIs(); renderMap(); renderODTable(); renderCharts(); renderGapAnalysis(); renderSimulator(); renderSustainability();
+    renderKPIs(); renderMap(); renderODTable(); renderCharts(); renderGapAnalysis(); renderSimulator(); renderSustainability(); renderSeguimiento();
   }).catch(function(err){ console.error('[PMCT] Error:', err); alert('Error cargando datos: '+err.message); });
 }
 
@@ -846,6 +912,176 @@ function renderSustainability(){
   charts.co2=new Chart(document.getElementById('chCO2'),{type:'bar',data:{labels:modeLabels.map(function(m){return m.length>18?m.slice(0,16)+'…':m;}),datasets:[{data:modeLabels.map(function(m){return parseFloat(co2ByMode[m].toFixed(1));}),backgroundColor:COLORS,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
 
   charts.co2save=new Chart(document.getElementById('chCO2Save'),{type:'bar',data:{labels:['Situación Actual','Si preferencia'],datasets:[{data:[parseFloat(totalCO2.toFixed(1)),parseFloat(prefCO2.toFixed(1))],backgroundColor:['#ef4444','#10b981'],borderRadius:8,barThickness:60}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg CO₂/día'},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+}
+
+// ============================
+// SEGUIMIENTO (SEC 8)
+// ============================
+var SEG_ICONS = {
+  bike: String.fromCodePoint(0x1F6B2),
+  bus: String.fromCodePoint(0x1F68C),
+  carpool: String.fromCodePoint(0x1F91D),
+  laptop: String.fromCodePoint(0x1F4BB),
+  nocar: String.fromCodePoint(0x1F6AB),
+  truck: String.fromCodePoint(0x1F69A),
+  leaf: String.fromCodePoint(0x1F33F),
+  money: String.fromCodePoint(0x1F4B0),
+  heart: String.fromCodePoint(0x2764)+String.fromCodePoint(0xFE0F),
+  bolt: String.fromCodePoint(0x26A1),
+  chart: String.fromCodePoint(0x1F4C8),
+  up: String.fromCodePoint(0x2191),
+  down: String.fromCodePoint(0x2193),
+  flat: String.fromCodePoint(0x2194)+String.fromCodePoint(0xFE0F)
+};
+
+var SEGUIMIENTO_DATA = [
+  {
+    id:'obj1', icon: SEG_ICONS.bike, color:'#3b82f6',
+    title:{es:'Fomentar la movilidad ciclista y en patinete',eu:'Bizikleta eta patineteko mugikortasuna sustatzea'},
+    indicators:[
+      {name:{es:'% desplazamientos en bicicleta',eu:'% lekualdaketak bizikletaz'},value:3.76,unit:'%',target:'up',trend:'up',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Km/semana en bicicleta',eu:'Km/astean bizikletaz'},value:327,unit:'km',target:'up',trend:'up',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Bicis aparcadas en aparcabicis',eu:'Bizikletak aparkalekuan'},value:2,unit:'',target:'up',trend:'stable',method:{es:'Observación visual',eu:'Ikus-behaketa'},freq:{es:'Cada 3 meses',eu:'3 hilabetero'}},
+      {name:{es:'% desplazamientos en patinete',eu:'% lekualdaketak patinetez'},value:0,unit:'%',target:'up',trend:'stable',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Km/semana en patinete',eu:'Km/astean patinetez'},value:0,unit:'km',target:'up',trend:'stable',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Patinetes aparcados',eu:'Patinete aparkatuta'},value:0,unit:'',target:'up',trend:'stable',method:{es:'Observación visual',eu:'Ikus-behaketa'},freq:{es:'Cada 3 meses',eu:'3 hilabetero'}}
+    ],
+    benefits:{
+      transporte:{es:'Aumento del modo ciclista para realizar los desplazamientos al centro de trabajo.',eu:'Bizikleta moduaren hazkundea lantokira joateko.'},
+      energeticos:{es:'Reducción de consumos por desplazamientos no motorizados.',eu:'Kontsumo murrizketa motorizatu gabeko lekualdaketetarako.'},
+      ambientales:{es:'Reducción de emisiones contaminantes por desplazamientos no motorizados.',eu:'Emisio kutsagarrien murrizketa.'},
+      economicos:{es:'Ahorro de recursos debido a menor uso de vehículos.',eu:'Baliabideen aurreztea ibilgailuen erabilera gutxiagorekin.'},
+      sociales:{es:'Mejoras en la salud por cambio de hábitos y ejercicio físico.',eu:'Osasun hobekuntzak ohitura aldaketagatik eta ariketa fisikoa egiteagatik.'}
+    }
+  },
+  {
+    id:'obj2', icon: SEG_ICONS.bus, color:'#f59e0b',
+    title:{es:'Potenciar el uso del transporte público',eu:'Garraio publikoaren erabilera sustatzea'},
+    indicators:[
+      {name:{es:'% desplazamientos en transporte público',eu:'% lekualdaketak garraio publikoan'},value:41.51,unit:'%',target:'up',trend:'up',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Trabajadores con abono transporte',eu:'Garraio abonodunak'},value:22,unit:'',target:'up',trend:'up',method:{es:'Registro RRHH',eu:'GE Erregistroa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Satisfacción con servicio TP (1-5)',eu:'TP zerbitzuarekiko gogobetetasuna (1-5)'},value:3.8,unit:'/5',target:'up',trend:'stable',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}}
+    ],
+    benefits:{
+      transporte:{es:'Mayor uso de transporte colectivo reduciendo vehículos privados.',eu:'Garraio kolektiboaren erabilera handiagoa ibilgailu pribatuak murriztuz.'},
+      energeticos:{es:'Menor consumo energético por viajero frente al vehículo privado.',eu:'Energia-kontsumo txikiagoa bidaiariako.'},
+      ambientales:{es:'Reducción de emisiones CO₂ por cambio modal a transporte colectivo.',eu:'CO₂ emisioen murrizketa modu-aldaketagatik.'},
+      economicos:{es:'Reducción de costes de aparcamiento y combustible para trabajadores.',eu:'Aparkaleku eta erregai kostuen murrizketa.'},
+      sociales:{es:'Menor estrés asociado a la conducción y atascos.',eu:'Gidatzearekin eta tapoiekin lotutako estres txikiagoa.'}
+    }
+  },
+  {
+    id:'obj3', icon: SEG_ICONS.carpool, color:'#8b5cf6',
+    title:{es:'Fomentar el vehículo compartido (Carpool)',eu:'Ibilgailu partekatua sustatzea (Carpool)'},
+    indicators:[
+      {name:{es:'% desplazamientos en coche compartido',eu:'% lekualdaketak auto partekatuan'},value:5.66,unit:'%',target:'up',trend:'stable',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Ocupación media del vehículo',eu:'Ibilgailuaren batez besteko okupazioa'},value:1.2,unit:'pers.',target:'up',trend:'stable',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Viajes compartidos/semana',eu:'Bidaia partekatuak/astean'},value:6,unit:'',target:'up',trend:'up',method:{es:'App/Registro',eu:'App/Erregistroa'},freq:{es:'Mensual',eu:'Hilekoa'}}
+    ],
+    benefits:{
+      transporte:{es:'Reducción del número de vehículos privados en desplazamientos.',eu:'Ibilgailu pribatuen kopuruaren murrizketa.'},
+      energeticos:{es:'Reducción del consumo de combustible al compartir vehículo.',eu:'Erregai kontsumoaren murrizketa ibilgailua partekatzean.'},
+      ambientales:{es:'Menos emisiones por viajero al aumentar la ocupación.',eu:'Emisio gutxiago bidaiariako okupazioa handitzerakoan.'},
+      economicos:{es:'Ahorro en combustible y desgaste compartido entre usuarios.',eu:'Erregai eta higadura aurreztea erabiltzaileen artean.'},
+      sociales:{es:'Fomento de relaciones sociales entre compañeros.',eu:'Lankideen arteko gizarte harremanen sustapena.'}
+    }
+  },
+  {
+    id:'obj4', icon: SEG_ICONS.laptop, color:'#06b6d4',
+    title:{es:'Promover el teletrabajo',eu:'Telelana sustatzea'},
+    indicators:[
+      {name:{es:'% trabajadores con teletrabajo',eu:'% langileak telelanarekin'},value:12.0,unit:'%',target:'up',trend:'up',method:{es:'Registro RRHH',eu:'GE Erregistroa'},freq:{es:'Trimestral',eu:'Hiruhilekoa'}},
+      {name:{es:'Días de teletrabajo/semana (promedio)',eu:'Telelan egunak/astean (batez bestekoa)'},value:1.5,unit:'días',target:'up',trend:'up',method:{es:'Registro RRHH',eu:'GE Erregistroa'},freq:{es:'Trimestral',eu:'Hiruhilekoa'}},
+      {name:{es:'Desplazamientos evitados/mes',eu:'Ekiditutako lekualdaketak/hilean'},value:96,unit:'',target:'up',trend:'up',method:{es:'Cálculo',eu:'Kalkulua'},freq:{es:'Mensual',eu:'Hilekoa'}}
+    ],
+    benefits:{
+      transporte:{es:'Eliminación directa de desplazamientos en días de teletrabajo.',eu:'Telelan egunetan lekualdaketen zuzeneko ezabapena.'},
+      energeticos:{es:'Reducción del consumo energético al no desplazarse.',eu:'Energia kontsumoaren murrizketa lekualdatu gabe.'},
+      ambientales:{es:'Cero emisiones en días de trabajo remoto.',eu:'Zero emisio urruneko lan egunetan.'},
+      economicos:{es:'Ahorro para el trabajador en combustible y transporte.',eu:'Langilearen aurreztea erregai eta garraioan.'},
+      sociales:{es:'Mejor conciliación laboral y personal.',eu:'Lan eta norberaren bateragarritasun hobea.'}
+    }
+  },
+  {
+    id:'obj5', icon: SEG_ICONS.nocar, color:'#ef4444',
+    title:{es:'Reducir el uso del vehículo privado en solitario',eu:'Ibilgailu pribatuaren bakarrik erabilera murriztea'},
+    indicators:[
+      {name:{es:'% desplazamientos en coche solo',eu:'% lekualdaketak auto bakarrian'},value:35.85,unit:'%',target:'down',trend:'down',method:{es:'Encuesta a trabajadores',eu:'Langileei galdeketa'},freq:{es:'Anual',eu:'Urtekoa'}},
+      {name:{es:'Plazas de aparcamiento ocupadas/día',eu:'Aparkaleku okupatuak/egunean'},value:28,unit:'',target:'down',trend:'stable',method:{es:'Observación visual',eu:'Ikus-behaketa'},freq:{es:'Cada 3 meses',eu:'3 hilabetero'}},
+      {name:{es:'Emisiones CO₂ evitadas (t/año)',eu:'Ekiditutako CO₂ emisioak (t/urte)'},value:2.4,unit:'t',target:'up',trend:'up',method:{es:'Cálculo',eu:'Kalkulua'},freq:{es:'Anual',eu:'Urtekoa'}}
+    ],
+    benefits:{
+      transporte:{es:'Reducción de la congestión viaria en accesos al centro de trabajo.',eu:'Bide pilaketen murrizketa lantokira sartzeko.'},
+      energeticos:{es:'Menor dependencia de combustibles fósiles.',eu:'Erregai fosilen mendekotasun txikiagoa.'},
+      ambientales:{es:'Reducción directa de emisiones contaminantes.',eu:'Emisio kutsagarrien zuzeneko murrizketa.'},
+      economicos:{es:'Menor necesidad de plazas de aparcamiento.',eu:'Aparkaleku gutxiago behar izatea.'},
+      sociales:{es:'Mejora de la calidad del aire y del entorno urbano.',eu:'Airearen kalitatearen eta hiri ingurunearen hobekuntza.'}
+    }
+  }
+];
+
+function renderSeguimiento() {
+  var t = I18N[lang];
+  // Aggregate KPIs
+  var totalObj = SEGUIMIENTO_DATA.length;
+  var totalInd = SEGUIMIENTO_DATA.reduce(function(s,o){return s+o.indicators.length;},0);
+  var growing = 0;
+  SEGUIMIENTO_DATA.forEach(function(o){o.indicators.forEach(function(ind){if(ind.trend==='up') growing++;});});
+  var co2Obj = SEGUIMIENTO_DATA.find(function(o){return o.id==='obj5';});
+  var co2Val = co2Obj ? co2Obj.indicators.find(function(i){return i.unit==='t';}) : null;
+
+  document.getElementById('segKpis').innerHTML =
+    '<div class="seg-kpi" style="border-left:3px solid var(--green)"><div class="sk-val" style="color:var(--green)">'+totalObj+'</div><div class="sk-lbl">'+t.segObj+'</div></div>'+
+    '<div class="seg-kpi" style="border-left:3px solid #3b82f6"><div class="sk-val" style="color:#3b82f6">'+totalInd+'</div><div class="sk-lbl">'+t.segInd+'</div></div>'+
+    '<div class="seg-kpi" style="border-left:3px solid #f59e0b"><div class="sk-val" style="color:#f59e0b">'+growing+'</div><div class="sk-lbl">'+t.segUp+'</div></div>'+
+    '<div class="seg-kpi" style="border-left:3px solid #8b5cf6"><div class="sk-val" style="color:#8b5cf6">'+(co2Val?co2Val.value:'—')+'</div><div class="sk-lbl">'+t.segCO2saved+'</div></div>';
+
+  // Tabs
+  document.getElementById('objTabs').innerHTML = SEGUIMIENTO_DATA.map(function(o,i){
+    return '<div class="obj-tab'+(i===0?' active':'')+'" onclick="showObjPanel(\''+o.id+'\',this)"><span class="ot-icon">'+o.icon+'</span><span>'+o.title[lang]+'</span></div>';
+  }).join('');
+
+  // Panels
+  document.getElementById('objPanels').innerHTML = SEGUIMIENTO_DATA.map(function(o,i){
+    var trendLabel = {up:t.segUp2, down:t.segDown2, stable:t.segStable2};
+    var trendIcon = {up:SEG_ICONS.up, down:SEG_ICONS.down, stable:SEG_ICONS.flat};
+    var html = '<div class="obj-panel'+(i===0?' active':'')+'" id="panel-'+o.id+'">';
+    html += '<div class="card">';
+    html += '<div class="obj-header"><div class="oh-icon" style="background:'+o.color+'15">'+o.icon+'</div><div><div class="oh-title">'+o.title[lang]+'</div><div class="oh-desc">'+o.indicators.length+' '+t.segInd+'</div></div></div>';
+    html += '<table class="ind-table"><thead><tr><th>'+t.segName+'</th><th>'+t.segVal+'</th><th>'+t.segTarget+'</th><th>'+t.segTrend+'</th><th>'+t.segMethod+'</th><th>'+t.segFreq+'</th></tr></thead><tbody>';
+    o.indicators.forEach(function(ind){
+      var targetLbl = ind.target==='up'?t.segUp2:ind.target==='down'?t.segDown2:t.segStable2;
+      html += '<tr>'+
+        '<td style="font-weight:500;color:var(--dark)">'+ind.name[lang]+'</td>'+
+        '<td><span class="ind-val">'+ind.value+'</span> <span style="font-size:11px;color:var(--gray)">'+ind.unit+'</span></td>'+
+        '<td><span style="font-size:12px;color:var(--gray)">'+targetLbl+'</span></td>'+
+        '<td><span class="ind-trend '+ind.trend+'">'+trendIcon[ind.trend]+' '+trendLabel[ind.trend]+'</span></td>'+
+        '<td class="ind-method">'+ind.method[lang]+'</td>'+
+        '<td class="ind-freq">'+ind.freq[lang]+'</td>'+
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    // Benefits
+    html += '<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,.06)">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--dark);margin-bottom:10px">'+t.segBenTitle+'</div>';
+    html += '<div class="ben-grid">';
+    var benCats = ['transporte','energeticos','ambientales','economicos','sociales'];
+    var benIcons = [SEG_ICONS.truck, SEG_ICONS.bolt, SEG_ICONS.leaf, SEG_ICONS.money, SEG_ICONS.heart];
+    var benLabels = [t.segBenTransporte, t.segBenEnergetico, t.segBenAmbiental, t.segBenEconomico, t.segBenSocial];
+    benCats.forEach(function(cat,ci){
+      html += '<div class="ben-item"><div class="bi-icon">'+benIcons[ci]+'</div><div class="bi-cat">'+benLabels[ci]+'</div><div class="bi-txt">'+o.benefits[cat][lang]+'</div></div>';
+    });
+    html += '</div></div>';
+    html += '</div></div>';
+    return html;
+  }).join('');
+}
+
+function showObjPanel(objId, tabEl) {
+  document.querySelectorAll('.obj-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.obj-panel').forEach(function(p){p.classList.remove('active');});
+  tabEl.classList.add('active');
+  document.getElementById('panel-'+objId).classList.add('active');
 }
 
 // ============================
